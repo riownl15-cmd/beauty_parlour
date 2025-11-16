@@ -65,11 +65,12 @@ export default function CategoryForm({ category, onClose }: CategoryFormProps) {
           .eq('id', category.id);
 
         if (error) {
-          if (error.code === '23505') {
+          console.error('Supabase update error:', error);
+          if (error.code === '23505' || error.message?.includes('duplicate')) {
             setErrors({ name: 'Category name already exists' });
             return;
           }
-          throw error;
+          throw new Error(error.message || 'Failed to update category');
         }
       } else {
         const { error } = await supabase
@@ -77,18 +78,20 @@ export default function CategoryForm({ category, onClose }: CategoryFormProps) {
           .insert([categoryData]);
 
         if (error) {
-          if (error.code === '23505') {
+          console.error('Supabase insert error:', error);
+          if (error.code === '23505' || error.message?.includes('duplicate')) {
             setErrors({ name: 'Category name already exists' });
             return;
           }
-          throw error;
+          throw new Error(error.message || 'Failed to create category');
         }
       }
 
       onClose();
     } catch (error) {
       console.error('Error saving category:', error);
-      alert('Error saving category. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Error saving category. Please try again.';
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }

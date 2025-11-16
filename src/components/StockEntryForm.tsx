@@ -26,6 +26,7 @@ export default function StockEntryForm({ products, onClose }: StockEntryFormProp
       const product = products.find((p) => p.id === formData.product_id);
 
       if (!product) throw new Error('Product not found');
+      if (!formData.quantity) throw new Error('Quantity is required');
 
       const movementData = {
         product_id: formData.product_id,
@@ -40,7 +41,10 @@ export default function StockEntryForm({ products, onClose }: StockEntryFormProp
         .from('stock_movements')
         .insert([movementData]);
 
-      if (movementError) throw movementError;
+      if (movementError) {
+        console.error('Movement error:', movementError);
+        throw new Error(movementError.message || 'Failed to record stock movement');
+      }
 
       const newStockQty = product.stock_qty + quantity;
 
@@ -52,12 +56,16 @@ export default function StockEntryForm({ products, onClose }: StockEntryFormProp
         })
         .eq('id', formData.product_id);
 
-      if (productError) throw productError;
+      if (productError) {
+        console.error('Product error:', productError);
+        throw new Error(productError.message || 'Failed to update product stock');
+      }
 
       onClose();
     } catch (error) {
       console.error('Error adding stock:', error);
-      alert('Error adding stock. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Error adding stock. Please try again.';
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }

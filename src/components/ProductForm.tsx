@@ -65,17 +65,24 @@ export default function ProductForm({ product, categories, onClose }: ProductFor
           .update(productData)
           .eq('id', product.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase update error:', error);
+          throw new Error(error.message || 'Failed to update product');
+        }
       } else {
         const { error } = await supabase.from('products').insert([productData]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase insert error:', error);
+          throw new Error(error.message || 'Failed to create product');
+        }
       }
 
       onClose();
     } catch (error) {
       console.error('Error saving product:', error);
-      alert('Error saving product. Please check all fields.');
+      const errorMessage = error instanceof Error ? error.message : 'Error saving product. Please try again.';
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }

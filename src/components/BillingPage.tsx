@@ -217,7 +217,10 @@ export default function BillingPage() {
         ])
         .select();
 
-      if (invoiceError) throw invoiceError;
+      if (invoiceError) {
+        console.error('Invoice creation error:', invoiceError);
+        throw new Error(invoiceError.message || 'Failed to create invoice');
+      }
 
       const invoiceId = invoiceData[0].id;
 
@@ -236,13 +239,16 @@ export default function BillingPage() {
 
       const { error: itemsError } = await supabase.from('invoice_items').insert(invoiceItems);
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error('Invoice items error:', itemsError);
+        throw new Error(itemsError.message || 'Failed to add invoice items');
+      }
 
       for (const item of cart) {
         if (item.type === 'product' && item.productId) {
           const product = products.find((p) => p.id === item.productId);
           if (product) {
-            await supabase
+            const updateResult = await supabase
               .from('products')
               .update({
                 stock_qty: product.stock_qty - item.quantity,
@@ -250,7 +256,11 @@ export default function BillingPage() {
               })
               .eq('id', item.productId);
 
-            await supabase.from('stock_movements').insert([
+            if (updateResult.error) {
+              console.error('Stock update error:', updateResult.error);
+            }
+
+            const movementResult = await supabase.from('stock_movements').insert([
               {
                 product_id: item.productId,
                 movement_type: 'sale',
@@ -260,6 +270,10 @@ export default function BillingPage() {
                 created_at: new Date().toISOString(),
               },
             ]);
+
+            if (movementResult.error) {
+              console.error('Stock movement error:', movementResult.error);
+            }
           }
         }
       }
@@ -276,7 +290,8 @@ export default function BillingPage() {
       loadData();
     } catch (error) {
       console.error('Error creating invoice:', error);
-      alert('Error processing checkout. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Error processing checkout. Please try again.';
+      alert(errorMessage);
     } finally {
       setProcessing(false);
     }
