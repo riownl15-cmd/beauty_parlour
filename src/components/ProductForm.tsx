@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase, type Product, type Category } from '../lib/supabase';
-import { X } from 'lucide-react';
+import { X, Barcode as BarcodeIcon } from 'lucide-react';
+import BarcodeGenerator from './BarcodeGenerator';
 
 type ProductFormProps = {
   product: Product | null;
@@ -22,6 +23,7 @@ export default function ProductForm({ product, categories, onClose }: ProductFor
     image_url: '',
   });
   const [loading, setLoading] = useState(false);
+  const [showBarcodeGenerator, setShowBarcodeGenerator] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -120,12 +122,22 @@ export default function ProductForm({ product, categories, onClose }: ProductFor
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Barcode</label>
-              <input
-                type="text"
-                value={formData.barcode}
-                onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={formData.barcode}
+                  onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowBarcodeGenerator(true)}
+                  className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-1"
+                  title="Generate barcode"
+                >
+                  <BarcodeIcon className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -253,6 +265,17 @@ export default function ProductForm({ product, categories, onClose }: ProductFor
             </button>
           </div>
         </form>
+
+        {showBarcodeGenerator && (
+          <BarcodeGenerator
+            productName={formData.name || 'Product'}
+            onBarcodeGenerated={(barcode) => {
+              setFormData({ ...formData, barcode });
+              setShowBarcodeGenerator(false);
+            }}
+            onClose={() => setShowBarcodeGenerator(false)}
+          />
+        )}
       </div>
     </div>
   );
