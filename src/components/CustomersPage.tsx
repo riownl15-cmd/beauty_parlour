@@ -213,7 +213,7 @@ export default function CustomersPage() {
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-green-600" />
                     <span className="text-sm font-semibold text-gray-900">
-                      ${customer.total_spent.toFixed(2)} spent
+                      ₹{customer.total_spent.toFixed(2)} spent
                     </span>
                   </div>
                 </div>
@@ -415,11 +415,11 @@ export default function CustomersPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-bold text-green-600">
-                          ${invoice.total_amount.toFixed(2)}
+                          ₹{invoice.total_amount.toFixed(2)}
                         </p>
                         {invoice.discount_amount > 0 && (
                           <p className="text-sm text-gray-600">
-                            Discount: ${invoice.discount_amount.toFixed(2)}
+                            Discount: ₹{invoice.discount_amount.toFixed(2)}
                           </p>
                         )}
                       </div>
@@ -435,7 +435,7 @@ export default function CustomersPage() {
                   <div className="flex justify-between items-center mt-2">
                     <p className="text-lg font-semibold text-gray-900">Total Amount Spent:</p>
                     <p className="text-2xl font-bold text-green-600">
-                      ${customerInvoices.reduce((sum, inv) => sum + inv.total_amount, 0).toFixed(2)}
+                      ₹{customerInvoices.reduce((sum, inv) => sum + inv.total_amount, 0).toFixed(2)}
                     </p>
                   </div>
                 </div>

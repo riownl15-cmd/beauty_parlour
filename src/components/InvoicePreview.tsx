@@ -89,141 +89,150 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full my-8">
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 print:hidden">
-          <h3 className="text-2xl font-bold text-gray-800">Invoice Preview</h3>
-          <div className="flex space-x-2">
-            <button
-              onClick={handlePrint}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Printer className="w-5 h-5" />
-              <span>Print</span>
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
+    <>
+      <style>
+        {`
+          @media print {
+            @page {
+              size: 76mm auto;
+              margin: 0;
+            }
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            .no-print {
+              display: none !important;
+            }
+            .thermal-receipt {
+              width: 76mm;
+              margin: 0;
+              padding: 4mm;
+              font-size: 10pt;
+              background: white;
+            }
+          }
+        `}
+      </style>
 
-        <div className="p-8 print:p-12" id="invoice-content">
-          <div className="border-2 border-gray-300 p-8">
-            <div className="flex justify-between items-start mb-8">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">{settings.store_name}</h1>
-                {settings.store_address && (
-                  <p className="text-gray-600">{settings.store_address}</p>
-                )}
-                {settings.store_phone && <p className="text-gray-600">{settings.store_phone}</p>}
-              </div>
-              <div className="text-right">
-                <h2 className="text-2xl font-bold text-blue-600 mb-2">INVOICE</h2>
-                <p className="text-gray-600">#{invoice.invoice_number}</p>
-                <p className="text-sm text-gray-500">{formatDate(invoice.created_at)}</p>
-              </div>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto no-print">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-md my-8">
+          <div className="flex justify-between items-center p-4 border-b border-gray-200">
+            <h3 className="text-xl font-bold text-gray-800">Receipt Preview</h3>
+            <div className="flex space-x-2">
+              <button
+                onClick={handlePrint}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Printer className="w-5 h-5" />
+                <span>Print</span>
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
+          </div>
 
-            {(invoice.customer_name || invoice.customer_phone) && (
-              <div className="mb-8 pb-4 border-b border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-600 mb-2">BILL TO:</h3>
-                {invoice.customer_name && (
-                  <p className="text-gray-800 font-medium">{invoice.customer_name}</p>
+          <div className="p-4 bg-gray-50">
+            <div className="thermal-receipt bg-white mx-auto" style={{ width: '76mm', padding: '4mm', fontFamily: 'monospace' }}>
+              <div className="text-center mb-3">
+                <h1 className="text-xl font-bold mb-1">{settings.store_name}</h1>
+                {settings.store_address && (
+                  <p className="text-xs mb-1">{settings.store_address}</p>
                 )}
-                {invoice.customer_phone && <p className="text-gray-600">{invoice.customer_phone}</p>}
+                {settings.store_phone && (
+                  <p className="text-xs mb-1">Tel: {settings.store_phone}</p>
+                )}
               </div>
-            )}
 
-            <table className="w-full mb-8">
-              <thead>
-                <tr className="border-b-2 border-gray-300">
-                  <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">
-                    ITEM
-                  </th>
-                  <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">TYPE</th>
-                  <th className="text-right py-3 px-2 text-sm font-semibold text-gray-700">QTY</th>
-                  <th className="text-right py-3 px-2 text-sm font-semibold text-gray-700">
-                    PRICE
-                  </th>
-                  <th className="text-right py-3 px-2 text-sm font-semibold text-gray-700">TAX</th>
-                  <th className="text-right py-3 px-2 text-sm font-semibold text-gray-700">
-                    TOTAL
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.id} className="border-b border-gray-200">
-                    <td className="py-3 px-2 text-gray-800">{item.item_name}</td>
-                    <td className="py-3 px-2">
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded ${
-                          item.item_type === 'product'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-green-100 text-green-700'
-                        }`}
-                      >
-                        {item.item_type}
-                      </span>
-                    </td>
-                    <td className="py-3 px-2 text-right text-gray-800">{item.quantity}</td>
-                    <td className="py-3 px-2 text-right text-gray-800">
-                      ₹{item.unit_price.toFixed(2)}
-                    </td>
-                    <td className="py-3 px-2 text-right text-gray-600 text-sm">
-                      {item.tax_rate}%
-                    </td>
-                    <td className="py-3 px-2 text-right font-medium text-gray-800">
-                      ₹{item.total_amount.toFixed(2)}
-                    </td>
-                  </tr>
+              <div className="border-t-2 border-dashed border-gray-400 my-2"></div>
+
+              <div className="text-center text-sm mb-2">
+                <p className="font-bold">INVOICE</p>
+                <p className="text-xs">#{invoice.invoice_number}</p>
+                <p className="text-xs">{formatDate(invoice.created_at)}</p>
+              </div>
+
+              {(invoice.customer_name || invoice.customer_phone) && (
+                <>
+                  <div className="border-t border-dashed border-gray-400 my-2"></div>
+                  <div className="text-xs mb-2">
+                    {invoice.customer_name && (
+                      <p><strong>Customer:</strong> {invoice.customer_name}</p>
+                    )}
+                    {invoice.customer_phone && (
+                      <p><strong>Phone:</strong> {invoice.customer_phone}</p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              <div className="border-t-2 border-dashed border-gray-400 my-2"></div>
+
+              <div className="text-xs">
+                {items.map((item, index) => (
+                  <div key={item.id} className="mb-2">
+                    <div className="flex justify-between font-semibold">
+                      <span>{item.item_name}</span>
+                      <span>₹{item.total_amount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-600 ml-2">
+                      <span>{item.quantity} x ₹{item.unit_price.toFixed(2)} ({item.tax_rate}% tax)</span>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
 
-            <div className="flex justify-end mb-8">
-              <div className="w-64 space-y-2">
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium text-gray-800">₹{invoice.subtotal.toFixed(2)}</span>
+              <div className="border-t-2 border-dashed border-gray-400 my-2"></div>
+
+              <div className="text-xs space-y-1">
+                <div className="flex justify-between">
+                  <span>Subtotal:</span>
+                  <span>₹{invoice.subtotal.toFixed(2)}</span>
                 </div>
+
                 {invoice.discount_amount > 0 && (
-                  <div className="flex justify-between py-2 border-b border-gray-200 text-green-600">
+                  <div className="flex justify-between">
                     <span>
-                      Discount
-                      {invoice.discount_percentage > 0 && ` (${invoice.discount_percentage}%)`}
+                      Discount{invoice.discount_percentage > 0 && ` (${invoice.discount_percentage}%)`}:
                     </span>
                     <span>-₹{invoice.discount_amount.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="font-medium text-gray-800">₹{invoice.tax_amount.toFixed(2)}</span>
+
+                <div className="flex justify-between">
+                  <span>Tax:</span>
+                  <span>₹{invoice.tax_amount.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between py-3 border-t-2 border-gray-300">
-                  <span className="text-lg font-bold text-gray-800">TOTAL</span>
-                  <span className="text-xl font-bold text-blue-600">
-                    ₹{invoice.total_amount.toFixed(2)}
-                  </span>
+
+                <div className="border-t-2 border-gray-800 my-1 pt-1"></div>
+
+                <div className="flex justify-between font-bold text-base">
+                  <span>TOTAL:</span>
+                  <span>₹{invoice.total_amount.toFixed(2)}</span>
                 </div>
               </div>
-            </div>
 
-            <div className="flex justify-between items-end text-sm text-gray-600 pt-4 border-t border-gray-200">
-              <div>
-                <p className="font-medium mb-1">Payment Method:</p>
+              <div className="border-t-2 border-dashed border-gray-400 my-2"></div>
+
+              <div className="text-xs text-center mb-2">
+                <p><strong>Payment Method:</strong></p>
                 <p className="uppercase">{invoice.payment_method}</p>
               </div>
-              <div className="text-right">
-                <p>Thank you for your business!</p>
+
+              <div className="border-t border-dashed border-gray-400 my-2"></div>
+
+              <div className="text-center text-xs">
+                <p className="font-semibold">Thank you for your visit!</p>
+                <p>Please visit again</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
