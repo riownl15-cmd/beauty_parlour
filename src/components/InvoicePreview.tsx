@@ -171,11 +171,9 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
       </head>
       <body>
         <div class="receipt">
-          ${settings.store_logo ? `
-            <div class="center">
-              <img src="${settings.store_logo}" class="logo" alt="Logo" />
-            </div>
-          ` : ''}
+          <div class="center">
+            <img src="/asset_2smile_struct.png" class="logo" alt="Logo" />
+          </div>
 
           <div class="center">
             <h1>${settings.store_name.toUpperCase()}</h1>
@@ -322,15 +320,13 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
 
           <div className="p-4 bg-gray-50">
             <div className="thermal-receipt bg-white mx-auto" style={{ width: '76mm', padding: '5mm', fontFamily: 'monospace' }}>
-              {settings.store_logo && (
-                <div className="text-center mb-3">
-                  <img
-                    src={settings.store_logo}
-                    alt="Store Logo"
-                    className="w-32 h-auto mx-auto"
-                  />
-                </div>
-              )}
+              <div className="text-center mb-3">
+                <img
+                  src="/asset_2smile_struct.png"
+                  alt="Store Logo"
+                  className="w-32 h-auto mx-auto"
+                />
+              </div>
 
               <div className="text-center mb-3">
                 <h1 className="text-xl font-bold mb-2">{settings.store_name.toUpperCase()}</h1>

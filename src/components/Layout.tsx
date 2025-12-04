@@ -28,7 +28,7 @@ export default function Layout({ children, currentPage, onPageChange, onLogout }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex relative">
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -99,8 +99,40 @@ export default function Layout({ children, currentPage, onPageChange, onLogout }
             {menuItems.find(item => item.id === currentPage)?.label || 'Beauty Parlour'}
           </h2>
         </div>
-        <div className="p-4 lg:p-8 pt-20 lg:pt-8">{children}</div>
+        <div className="p-4 lg:p-8 pt-20 lg:pt-8 pb-20">{children}</div>
       </main>
+
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-700 via-purple-600 to-purple-700 text-white py-2 overflow-hidden z-40 shadow-lg">
+        <div className="animate-scroll whitespace-nowrap text-xs font-bold">
+          <span className="inline-block px-4">
+            SOFTWARE SOLUTIONS BY ZOUIS CORP. | CONTACT: 6383702551 | WWW.ZOUISCORP.IN | © SMILE STRUCT BRIDAL STUDIOS
+          </span>
+          <span className="inline-block px-4">
+            SOFTWARE SOLUTIONS BY ZOUIS CORP. | CONTACT: 6383702551 | WWW.ZOUISCORP.IN | © SMILE STRUCT BRIDAL STUDIOS
+          </span>
+          <span className="inline-block px-4">
+            SOFTWARE SOLUTIONS BY ZOUIS CORP. | CONTACT: 6383702551 | WWW.ZOUISCORP.IN | © SMILE STRUCT BRIDAL STUDIOS
+          </span>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-33.333%);
+          }
+        }
+        .animate-scroll {
+          display: inline-block;
+          animation: scroll 25s linear infinite;
+        }
+        .animate-scroll:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
     </div>
   );
 }
