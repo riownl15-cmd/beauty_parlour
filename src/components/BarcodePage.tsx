@@ -127,6 +127,8 @@ export default function BarcodePage() {
       return;
     }
 
+    const logoUrl = window.location.origin + '/asset_2smile_struct.png';
+
     const labelHTML = `
       <!DOCTYPE html>
       <html>
@@ -135,7 +137,7 @@ export default function BarcodePage() {
         <title>Barcode Label - ${product.name}</title>
         <style>
           @page {
-            size: 80mm 50mm;
+            size: 38.1mm 25.4mm;
             margin: 0;
           }
           * {
@@ -144,9 +146,9 @@ export default function BarcodePage() {
             box-sizing: border-box;
           }
           body {
-            width: 80mm;
-            height: 50mm;
-            padding: 3mm;
+            width: 38.1mm;
+            height: 25.4mm;
+            padding: 1mm;
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
@@ -157,54 +159,58 @@ export default function BarcodePage() {
           .label {
             text-align: center;
             width: 100%;
-          }
-          .store-name {
-            font-size: 11px;
-            font-weight: bold;
-            margin-bottom: 2mm;
-            color: #333;
-          }
-          .product-name {
-            font-size: 13px;
-            font-weight: bold;
-            margin-bottom: 2mm;
-            text-transform: uppercase;
-            color: #000;
-          }
-          .barcode-container {
-            margin: 2mm 0;
             display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
           }
-          .barcode-container img {
-            max-width: 74mm;
+          .logo {
+            width: 12mm;
             height: auto;
+            margin-bottom: 0.5mm;
+          }
+          .product-name {
+            font-size: 6px;
+            font-weight: bold;
+            margin-bottom: 0.5mm;
+            text-transform: uppercase;
+            color: #000;
+            line-height: 1.1;
+            max-height: 8px;
+            overflow: hidden;
+          }
+          .barcode-container {
+            margin: 0.3mm 0;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+          }
+          .barcode-container img {
+            max-width: 36mm;
+            height: auto;
+            max-height: 12mm;
           }
           .price {
-            font-size: 15px;
+            font-size: 7px;
             font-weight: bold;
-            margin-top: 2mm;
+            margin-top: 0.3mm;
             color: #000;
-          }
-          .price-label {
-            font-size: 10px;
-            color: #666;
           }
         </style>
       </head>
       <body>
         <div class="label">
-          <div class="store-name">${storeName}</div>
+          <img src="${logoUrl}" class="logo" alt="Logo" onerror="this.style.display='none'" />
           <div class="product-name">${product.name}</div>
           <div class="barcode-container">
             <img src="${barcodeImage}" alt="Barcode" id="barcodeImg" />
           </div>
-          <div class="price">
-            <span class="price-label">MRP: </span>₹${product.sale_price.toFixed(2)}
-          </div>
+          <div class="price">₹${product.sale_price.toFixed(2)}</div>
         </div>
         <script>
-          var img = document.getElementById('barcodeImg');
+          var allImages = document.images;
+          var imagesLoaded = 0;
+          var totalImages = allImages.length;
 
           function printLabel() {
             window.print();
@@ -213,16 +219,25 @@ export default function BarcodePage() {
             };
           }
 
-          if (img.complete) {
+          if (totalImages === 0) {
             setTimeout(printLabel, 500);
           } else {
-            img.addEventListener('load', function() {
+            for (var i = 0; i < totalImages; i++) {
+              var img = allImages[i];
+              if (img.complete) {
+                imageLoaded();
+              } else {
+                img.addEventListener('load', imageLoaded);
+                img.addEventListener('error', imageLoaded);
+              }
+            }
+          }
+
+          function imageLoaded() {
+            imagesLoaded++;
+            if (imagesLoaded === totalImages) {
               setTimeout(printLabel, 500);
-            });
-            img.addEventListener('error', function() {
-              console.error('Failed to load barcode image');
-              setTimeout(printLabel, 500);
-            });
+            }
           }
         </script>
       </body>
