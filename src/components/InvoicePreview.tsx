@@ -67,7 +67,170 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
   };
 
   const handlePrint = () => {
-    window.print();
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) return;
+
+    const receiptHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Receipt - ${invoice.invoice_number}</title>
+        <style>
+          @page {
+            size: 80mm auto;
+            margin: 0;
+          }
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            width: 80mm;
+            margin: 0;
+            padding: 4mm;
+            font-family: monospace;
+            font-size: 10px;
+            line-height: 1.3;
+          }
+          .receipt {
+            width: 100%;
+          }
+          .center {
+            text-align: center;
+          }
+          .bold {
+            font-weight: bold;
+          }
+          .separator {
+            border-top: 1px dashed #666;
+            margin: 4px 0;
+          }
+          .separator-thick {
+            border-top: 2px solid #000;
+            margin: 4px 0;
+          }
+          .flex {
+            display: flex;
+            justify-content: space-between;
+            margin: 2px 0;
+          }
+          .item {
+            margin-bottom: 6px;
+          }
+          .uppercase {
+            text-transform: uppercase;
+          }
+          .gray {
+            color: #666;
+          }
+          h1 {
+            font-size: 16px;
+            margin-bottom: 4px;
+          }
+          .total {
+            font-size: 12px;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt">
+          <div class="center">
+            <h1 class="bold">${settings.store_name}</h1>
+            ${settings.store_address ? `<p>${settings.store_address}</p>` : ''}
+            ${settings.store_phone ? `<p>Tel: ${settings.store_phone}</p>` : ''}
+          </div>
+
+          <div class="separator"></div>
+
+          <div class="center">
+            <p class="bold">INVOICE</p>
+            <p>#${invoice.invoice_number}</p>
+            <p>${formatDate(invoice.created_at)}</p>
+          </div>
+
+          ${invoice.customer_name || invoice.customer_phone ? `
+            <div class="separator"></div>
+            <div>
+              ${invoice.customer_name ? `<p><strong>Customer:</strong> ${invoice.customer_name}</p>` : ''}
+              ${invoice.customer_phone ? `<p><strong>Phone:</strong> ${invoice.customer_phone}</p>` : ''}
+            </div>
+          ` : ''}
+
+          <div class="separator"></div>
+
+          <div>
+            ${items.map(item => `
+              <div class="item">
+                <div class="flex bold">
+                  <span>${item.item_name}</span>
+                  <span>₹${item.total_amount.toFixed(2)}</span>
+                </div>
+                <div class="gray" style="padding-left: 8px;">
+                  <span>${item.quantity} x ₹${item.unit_price.toFixed(2)} (${item.tax_rate}% tax)</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="separator"></div>
+
+          <div>
+            <div class="flex">
+              <span>Subtotal:</span>
+              <span>₹${invoice.subtotal.toFixed(2)}</span>
+            </div>
+
+            ${invoice.discount_amount > 0 ? `
+              <div class="flex">
+                <span>Discount${invoice.discount_percentage > 0 ? ` (${invoice.discount_percentage}%)` : ''}:</span>
+                <span>-₹${invoice.discount_amount.toFixed(2)}</span>
+              </div>
+            ` : ''}
+
+            <div class="flex">
+              <span>Tax:</span>
+              <span>₹${invoice.tax_amount.toFixed(2)}</span>
+            </div>
+
+            <div class="separator-thick"></div>
+
+            <div class="flex total">
+              <span>TOTAL:</span>
+              <span>₹${invoice.total_amount.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div class="separator"></div>
+
+          <div class="center">
+            <p><strong>Payment Method:</strong></p>
+            <p class="uppercase">${invoice.payment_method}</p>
+          </div>
+
+          <div class="separator"></div>
+
+          <div class="center">
+            <p class="bold">Thank you for your visit!</p>
+            <p>Please visit again</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(receiptHTML);
+    printWindow.document.close();
+
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+      printWindow.onafterprint = () => {
+        printWindow.close();
+      };
+    };
   };
 
   if (loading || !invoice) {
@@ -90,48 +253,7 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
 
   return (
     <>
-      <style>
-        {`
-          @media print {
-            @page {
-              size: 80mm auto;
-              margin: 0;
-            }
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            html, body {
-              width: 80mm;
-              height: auto;
-            }
-            body > *:not(.print-container) {
-              display: none !important;
-            }
-            .print-container {
-              display: block !important;
-              width: 80mm !important;
-              page-break-after: avoid !important;
-            }
-            .thermal-receipt {
-              width: 76mm !important;
-              margin: 0 auto !important;
-              padding: 4mm !important;
-              font-size: 9pt !important;
-              line-height: 1.3 !important;
-              background: white !important;
-              color: black !important;
-              page-break-inside: avoid !important;
-            }
-          }
-          .print-container {
-            display: none;
-          }
-        `}
-      </style>
-
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto no-print">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
         <div className="bg-white rounded-lg shadow-xl w-full max-w-md my-8">
           <div className="flex justify-between items-center p-4 border-b border-gray-200">
             <h3 className="text-xl font-bold text-gray-800">Receipt Preview</h3>
@@ -246,102 +368,6 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
                 <p>Please visit again</p>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="print-container">
-        <div className="thermal-receipt" style={{ fontFamily: 'monospace' }}>
-          <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-            <h1 style={{ fontSize: '16px', fontWeight: 'bold', margin: '0 0 4px 0' }}>{settings.store_name}</h1>
-            {settings.store_address && (
-              <p style={{ fontSize: '10px', margin: '0' }}>{settings.store_address}</p>
-            )}
-            {settings.store_phone && (
-              <p style={{ fontSize: '10px', margin: '0' }}>Tel: {settings.store_phone}</p>
-            )}
-          </div>
-
-          <div style={{ borderTop: '1px dashed #666', margin: '4px 0' }}></div>
-
-          <div style={{ textAlign: 'center', marginBottom: '6px' }}>
-            <p style={{ fontWeight: 'bold', margin: '0' }}>INVOICE</p>
-            <p style={{ fontSize: '10px', margin: '0' }}>#{invoice.invoice_number}</p>
-            <p style={{ fontSize: '10px', margin: '0' }}>{formatDate(invoice.created_at)}</p>
-          </div>
-
-          {(invoice.customer_name || invoice.customer_phone) && (
-            <>
-              <div style={{ borderTop: '1px dashed #666', margin: '4px 0' }}></div>
-              <div style={{ fontSize: '10px', marginBottom: '6px' }}>
-                {invoice.customer_name && (
-                  <p style={{ margin: '0' }}><strong>Customer:</strong> {invoice.customer_name}</p>
-                )}
-                {invoice.customer_phone && (
-                  <p style={{ margin: '0' }}><strong>Phone:</strong> {invoice.customer_phone}</p>
-                )}
-              </div>
-            </>
-          )}
-
-          <div style={{ borderTop: '1px dashed #666', margin: '4px 0' }}></div>
-
-          <div style={{ fontSize: '10px' }}>
-            {items.map((item) => (
-              <div key={item.id} style={{ marginBottom: '6px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}>
-                  <span>{item.item_name}</span>
-                  <span>₹{item.total_amount.toFixed(2)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#666', paddingLeft: '8px' }}>
-                  <span>{item.quantity} x ₹{item.unit_price.toFixed(2)} ({item.tax_rate}% tax)</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ borderTop: '1px dashed #666', margin: '4px 0' }}></div>
-
-          <div style={{ fontSize: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
-              <span>Subtotal:</span>
-              <span>₹{invoice.subtotal.toFixed(2)}</span>
-            </div>
-
-            {invoice.discount_amount > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
-                <span>
-                  Discount{invoice.discount_percentage > 0 && ` (${invoice.discount_percentage}%)`}:
-                </span>
-                <span>-₹{invoice.discount_amount.toFixed(2)}</span>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
-              <span>Tax:</span>
-              <span>₹{invoice.tax_amount.toFixed(2)}</span>
-            </div>
-
-            <div style={{ borderTop: '2px solid #000', margin: '4px 0', paddingTop: '4px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '12px' }}>
-                <span>TOTAL:</span>
-                <span>₹{invoice.total_amount.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ borderTop: '1px dashed #666', margin: '4px 0' }}></div>
-
-          <div style={{ fontSize: '10px', textAlign: 'center', marginBottom: '6px' }}>
-            <p style={{ margin: '0' }}><strong>Payment Method:</strong></p>
-            <p style={{ margin: '0', textTransform: 'uppercase' }}>{invoice.payment_method}</p>
-          </div>
-
-          <div style={{ borderTop: '1px dashed #666', margin: '4px 0' }}></div>
-
-          <div style={{ textAlign: 'center', fontSize: '10px' }}>
-            <p style={{ fontWeight: '600', margin: '0' }}>Thank you for your visit!</p>
-            <p style={{ margin: '0' }}>Please visit again</p>
           </div>
         </div>
       </div>
