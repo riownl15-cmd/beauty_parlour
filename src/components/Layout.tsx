@@ -1,4 +1,4 @@
-import { Menu, Package, ShoppingCart, BarChart3, Settings, Box, DollarSign, Tag, Users } from 'lucide-react';
+import { Menu, Package, ShoppingCart, BarChart3, Settings, Box, Tag, Users } from 'lucide-react';
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -22,9 +22,12 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
     <div className="min-h-screen bg-gray-50 flex">
       <aside className="w-64 bg-white shadow-lg">
         <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-2">
-            <DollarSign className="w-8 h-8 text-blue-600" />
-            <h1 className="text-xl font-bold text-gray-800">Beauty Parlour</h1>
+          <div className="flex items-center justify-center">
+            <img
+              src="/asset_2smile_struct.png"
+              alt="Smile Struck Bridal Studios"
+              className="w-full h-auto"
+            />
           </div>
         </div>
         <nav className="p-4 space-y-2">
