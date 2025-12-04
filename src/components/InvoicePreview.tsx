@@ -94,22 +94,29 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
         {`
           @media print {
             @page {
-              size: 76mm auto;
+              size: 80mm auto;
               margin: 0;
             }
-            body {
-              margin: 0;
-              padding: 0;
+            body * {
+              visibility: hidden;
             }
-            .no-print {
-              display: none !important;
+            .thermal-receipt,
+            .thermal-receipt * {
+              visibility: visible;
             }
             .thermal-receipt {
+              position: absolute;
+              left: 0;
+              top: 0;
               width: 76mm;
               margin: 0;
               padding: 4mm;
               font-size: 10pt;
               background: white;
+              box-shadow: none;
+            }
+            .no-print {
+              display: none !important;
             }
           }
         `}
