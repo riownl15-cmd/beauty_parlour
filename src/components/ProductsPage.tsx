@@ -10,11 +10,34 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [storeName, setStoreName] = useState('');
 
   useEffect(() => {
     loadProducts();
     loadCategories();
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .in('key', ['store_name']);
+
+      if (error) throw error;
+
+      const settings: Record<string, string> = {};
+      data?.forEach((setting) => {
+        settings[setting.key] = setting.value;
+      });
+
+      setStoreName(settings.store_name || 'Smile Struck Bridal Studios');
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      setStoreName('Smile Struck Bridal Studios');
+    }
+  };
 
   const loadProducts = async () => {
     try {
@@ -75,52 +98,71 @@ export default function ProductsPage() {
   };
 
   const generateBarcodeImage = (code: string): string => {
-    const barWidth = 3;
-    const barHeight = 100;
-    const width = code.length * barWidth * 8;
-    const height = barHeight + 40;
+    const barWidth = 4;
+    const barHeight = 120;
+    const quietZone = 40;
 
-    let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
-    svg += `<rect width="${width}" height="${height}" fill="white"/>`;
+    const binaryString = encodeToCODE128(code);
+    const totalWidth = (binaryString.length * barWidth) + (quietZone * 2);
+    const totalHeight = barHeight + 60;
 
-    let xPos = 10;
-    for (const digit of code) {
-      const bits = getBarPattern(digit);
-      for (const bit of bits) {
-        if (bit === '1') {
-          svg += `<rect x="${xPos}" y="10" width="${barWidth}" height="${barHeight}" fill="black"/>`;
-        }
-        xPos += barWidth;
+    let svg = `<svg width="${totalWidth}" height="${totalHeight}" xmlns="http://www.w3.org/2000/svg">`;
+    svg += `<rect width="${totalWidth}" height="${totalHeight}" fill="white"/>`;
+
+    let xPos = quietZone;
+    for (let i = 0; i < binaryString.length; i++) {
+      if (binaryString[i] === '1') {
+        svg += `<rect x="${xPos}" y="20" width="${barWidth}" height="${barHeight}" fill="black"/>`;
       }
+      xPos += barWidth;
     }
 
-    svg += `<text x="${width / 2}" y="${barHeight + 30}" font-size="14" font-family="monospace" text-anchor="middle" font-weight="bold">${code}</text>`;
+    svg += `<text x="${totalWidth / 2}" y="${barHeight + 45}" font-size="16" font-family="Arial, sans-serif" text-anchor="middle" font-weight="bold">${code}</text>`;
     svg += `</svg>`;
 
     return `data:image/svg+xml;base64,${btoa(svg)}`;
   };
 
-  const getBarPattern = (digit: string): string => {
-    const patterns: Record<string, string> = {
-      '0': '11011001100',
-      '1': '11001101100',
-      '2': '11001100110',
-      '3': '10010011000',
-      '4': '10010001100',
-      '5': '10001001100',
-      '6': '10011001000',
-      '7': '10011000100',
-      '8': '10001100100',
-      '9': '11010001100',
-      A: '11001011000',
-      B: '11001000110',
-      C: '11000101110',
-      D: '11000100100',
-      E: '11000010100',
-      F: '11000001010',
+  const encodeToCODE128 = (data: string): string => {
+    const CODE128_B: Record<string, string> = {
+      '0': '11011001100', '1': '11001101100', '2': '11001100110', '3': '10010011000',
+      '4': '10010001100', '5': '10001001100', '6': '10011001000', '7': '10011000100',
+      '8': '10001100100', '9': '11001001100', 'A': '11001000110', 'B': '10110011000',
+      'C': '10011011000', 'D': '10011000110', 'E': '10110001100', 'F': '10001101100',
+      'G': '10001100110', 'H': '11001100100', 'I': '11000110100', 'J': '11000100110',
+      'K': '10110011100', 'L': '10011011100', 'M': '10011001110', 'N': '10111001100',
+      'O': '10011101100', 'P': '10011100110', 'Q': '11001110010', 'R': '11001011100',
+      'S': '11001001110', 'T': '11011100100', 'U': '11001110100', 'V': '11101101110',
+      'W': '11101001100', 'X': '11100101100', 'Y': '11100100110', 'Z': '11101100100',
+      ' ': '11100110100', '!': '11100110010', '"': '11011011000', '#': '11011000110',
+      '$': '11000110110', '%': '10100011000', '&': '10001011000', "'": '10001000110',
+      '(': '10110001000', ')': '10001101000', '*': '10001100010', '+': '11010001000',
+      ',': '11000101000', '-': '11000100010', '.': '10110111000', '/': '10110001110',
     };
 
-    return patterns[digit] || '00000000';
+    const START_B = '11010010000';
+    const STOP = '1100011101011';
+
+    let encoded = START_B;
+    let checksum = 104;
+
+    for (let i = 0; i < data.length; i++) {
+      const char = data[i];
+      const pattern = CODE128_B[char];
+      if (pattern) {
+        encoded += pattern;
+        const charValue = char.charCodeAt(0) - 32;
+        checksum += charValue * (i + 1);
+      }
+    }
+
+    const checksumValue = checksum % 103;
+    const checksumChar = String.fromCharCode(checksumValue + 32);
+    const checksumPattern = CODE128_B[checksumChar] || '11011001100';
+    encoded += checksumPattern;
+    encoded += STOP;
+
+    return encoded;
   };
 
   const printLabel = (product: Product) => {
@@ -139,7 +181,7 @@ export default function ProductsPage() {
         <title>Barcode Label - ${product.name}</title>
         <style>
           @page {
-            size: 80mm 40mm;
+            size: 80mm 50mm;
             margin: 0;
           }
           * {
@@ -149,8 +191,8 @@ export default function ProductsPage() {
           }
           body {
             width: 80mm;
-            height: 40mm;
-            padding: 4mm;
+            height: 50mm;
+            padding: 3mm;
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
@@ -162,33 +204,50 @@ export default function ProductsPage() {
             text-align: center;
             width: 100%;
           }
-          .product-name {
-            font-size: 14px;
+          .store-name {
+            font-size: 11px;
             font-weight: bold;
-            margin-bottom: 4mm;
+            margin-bottom: 2mm;
+            color: #333;
+          }
+          .product-name {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 2mm;
             text-transform: uppercase;
+            color: #000;
           }
           .barcode-container {
             margin: 2mm 0;
+            display: flex;
+            justify-content: center;
           }
           .barcode-container img {
-            max-width: 70mm;
+            max-width: 74mm;
             height: auto;
           }
           .price {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             margin-top: 2mm;
+            color: #000;
+          }
+          .price-label {
+            font-size: 10px;
+            color: #666;
           }
         </style>
       </head>
       <body>
         <div class="label">
+          <div class="store-name">${storeName}</div>
           <div class="product-name">${product.name}</div>
           <div class="barcode-container">
             <img src="${barcodeImage}" alt="Barcode" />
           </div>
-          <div class="price">₹${product.sale_price.toFixed(2)}</div>
+          <div class="price">
+            <span class="price-label">MRP: </span>₹${product.sale_price.toFixed(2)}
+          </div>
         </div>
         <script>
           window.onload = function() {
@@ -197,7 +256,7 @@ export default function ProductsPage() {
               window.onafterprint = function() {
                 window.close();
               };
-            }, 250);
+            }, 500);
           };
         </script>
       </body>
