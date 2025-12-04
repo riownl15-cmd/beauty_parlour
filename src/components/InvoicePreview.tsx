@@ -75,6 +75,7 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
       <html>
       <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Receipt - ${invoice.invoice_number}</title>
         <style>
           @page {
@@ -93,6 +94,7 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
             font-family: monospace;
             font-size: 10px;
             line-height: 1.3;
+            background: white;
           }
           .receipt {
             width: 100%;
@@ -217,20 +219,24 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
             <p>Please visit again</p>
           </div>
         </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            }, 250);
+          };
+        </script>
       </body>
       </html>
     `;
 
+    printWindow.document.open();
     printWindow.document.write(receiptHTML);
     printWindow.document.close();
-
-    printWindow.onload = () => {
-      printWindow.focus();
-      printWindow.print();
-      printWindow.onafterprint = () => {
-        printWindow.close();
-      };
-    };
   };
 
   if (loading || !invoice) {
