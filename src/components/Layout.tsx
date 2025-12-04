@@ -1,4 +1,5 @@
-import { Menu, Package, ShoppingCart, BarChart3, Settings, Box, Tag, Users } from 'lucide-react';
+import { useState } from 'react';
+import { Menu, Package, ShoppingCart, BarChart3, Settings, Box, Tag, Users, X } from 'lucide-react';
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -7,6 +8,8 @@ type LayoutProps = {
 };
 
 export default function Layout({ children, currentPage, onPageChange }: LayoutProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const menuItems = [
     { id: 'billing', label: 'Billing', icon: ShoppingCart },
     { id: 'customers', label: 'Customers', icon: Users },
@@ -18,25 +21,48 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
+  const handleMenuItemClick = (pageId: string) => {
+    onPageChange(pageId);
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <aside className="w-64 bg-white shadow-lg">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-center">
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      <aside className={`
+        fixed lg:static inset-y-0 left-0 z-50
+        w-64 bg-white shadow-lg
+        transform transition-transform duration-300 ease-in-out
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        <div className="p-4 lg:p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between lg:justify-center">
             <img
               src="/asset_2smile_struct.png"
               alt="Smile Struck Bridal Studios"
-              className="w-full h-auto"
+              className="w-40 lg:w-full h-auto"
             />
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+            >
+              <X className="w-6 h-6 text-gray-600" />
+            </button>
           </div>
         </div>
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 120px)' }}>
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.id}
-                onClick={() => onPageChange(item.id)}
+                onClick={() => handleMenuItemClick(item.id)}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                   currentPage === item.id
                     ? 'bg-blue-600 text-white'
@@ -50,8 +76,20 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
           })}
         </nav>
       </aside>
-      <main className="flex-1 overflow-auto">
-        <div className="p-8">{children}</div>
+
+      <main className="flex-1 overflow-auto w-full">
+        <div className="lg:hidden fixed top-0 left-0 right-0 bg-white shadow-md z-30 p-4 flex items-center space-x-4">
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 rounded-lg hover:bg-gray-100"
+          >
+            <Menu className="w-6 h-6 text-gray-600" />
+          </button>
+          <h2 className="text-lg font-semibold text-gray-800">
+            {menuItems.find(item => item.id === currentPage)?.label || 'Beauty Parlour'}
+          </h2>
+        </div>
+        <div className="p-4 lg:p-8 pt-20 lg:pt-8">{children}</div>
       </main>
     </div>
   );

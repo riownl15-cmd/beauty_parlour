@@ -64,22 +64,22 @@ export default function StockPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-gray-800">Stock Management</h2>
+          <h2 className="text-2xl lg:text-3xl font-bold text-gray-800">Stock Management</h2>
           <p className="text-gray-600 mt-1">Track inventory and manage stock levels</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors active:scale-98 text-base w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           <span>Add Stock</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Total Products</p>
@@ -91,7 +91,7 @@ export default function StockPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Low Stock Alerts</p>
@@ -103,7 +103,7 @@ export default function StockPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Total Stock Value</p>
@@ -122,9 +122,9 @@ export default function StockPage() {
       </div>
 
       {lowStockProducts.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Low Stock Products</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {lowStockProducts.map((product) => (
               <div key={product.id} className="border border-amber-200 rounded-lg p-4 bg-amber-50">
                 <div className="flex justify-between items-start">
@@ -143,7 +143,7 @@ export default function StockPage() {
       )}
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-4 lg:p-6 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-800">Recent Stock Movements</h3>
         </div>
 

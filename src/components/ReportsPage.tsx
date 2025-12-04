@@ -158,30 +158,30 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-gray-800">Reports & Analytics</h2>
+          <h2 className="text-2xl lg:text-3xl font-bold text-gray-800">Reports & Analytics</h2>
           <p className="text-gray-600 mt-1">Track sales, profit, and inventory</p>
         </div>
         <button
           onClick={exportToCSV}
-          className="flex items-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+          className="flex items-center justify-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors active:scale-98 text-base w-full sm:w-auto"
         >
           <Download className="w-5 h-5" />
           <span>Export CSV</span>
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 mb-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Date Range</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">From</label>
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
             />
           </div>
           <div>
@@ -190,14 +190,14 @@ export default function ReportsPage() {
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
             />
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-blue-100 rounded-lg">
               <DollarSign className="w-6 h-6 text-blue-600" />
@@ -207,7 +207,7 @@ export default function ReportsPage() {
           <p className="text-3xl font-bold text-gray-800">₹{salesData.totalSales.toFixed(2)}</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-green-100 rounded-lg">
               <TrendingUp className="w-6 h-6 text-green-600" />
@@ -217,7 +217,7 @@ export default function ReportsPage() {
           <p className="text-3xl font-bold text-green-600">₹{salesData.totalProfit.toFixed(2)}</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-purple-100 rounded-lg">
               <ShoppingBag className="w-6 h-6 text-purple-600" />
@@ -227,7 +227,7 @@ export default function ReportsPage() {
           <p className="text-3xl font-bold text-gray-800">{salesData.totalOrders}</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-amber-100 rounded-lg">
               <Calendar className="w-6 h-6 text-amber-600" />
@@ -238,8 +238,8 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
           <div className="flex items-center space-x-2 mb-6">
             <TrendingUp className="w-6 h-6 text-blue-600" />
             <h3 className="text-lg font-semibold text-gray-800">Top Selling Products</h3>
@@ -272,9 +272,9 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
           <div className="flex items-center space-x-2 mb-6">
-            <AlertCircle className="w-6 h-6 text-amber-600" />
+            <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0" />
             <h3 className="text-lg font-semibold text-gray-800">Low Stock Products</h3>
           </div>
           <div className="space-y-3">

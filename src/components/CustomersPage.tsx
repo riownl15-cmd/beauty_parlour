@@ -151,10 +151,10 @@ export default function CustomersPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 lg:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Customers</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Customers</h1>
           <p className="text-gray-600 mt-1">Manage your customer database and view purchase history</p>
         </div>
         <button
@@ -163,17 +163,17 @@ export default function CustomersPage() {
             setFormData({ name: '', phone: '', email: '', address: '', notes: '' });
             setShowForm(true);
           }}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors active:scale-98 text-base w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           Add Customer
         </button>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-4 lg:gap-6">
         {customers.map((customer) => (
-          <div key={customer.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-            <div className="flex justify-between items-start">
+          <div key={customer.id} className="bg-white rounded-lg shadow-md p-4 lg:p-6 hover:shadow-lg transition-shadow">
+            <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -188,7 +188,7 @@ export default function CustomersPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                   {customer.email && (
                     <div className="flex items-center gap-2 text-gray-600">
                       <Mail className="w-4 h-4" />
@@ -225,22 +225,22 @@ export default function CustomersPage() {
                 )}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
                 <button
                   onClick={() => handleViewHistory(customer)}
-                  className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                  className="px-4 py-3 text-base bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors active:scale-98"
                 >
                   History
                 </button>
                 <button
                   onClick={() => handleEdit(customer)}
-                  className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  className="px-4 py-3 text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors active:scale-98"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(customer.id)}
-                  className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                  className="px-4 py-3 text-base bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors active:scale-98"
                 >
                   Delete
                 </button>
@@ -250,13 +250,13 @@ export default function CustomersPage() {
         ))}
 
         {customers.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
+          <div className="text-center py-12 bg-white rounded-lg shadow p-4">
             <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No customers yet</h3>
             <p className="text-gray-600 mb-4">Add your first customer to get started</p>
             <button
               onClick={() => setShowForm(true)}
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 active:scale-98 text-base"
             >
               <Plus className="w-5 h-5" />
               Add Customer
@@ -293,7 +293,7 @@ export default function CustomersPage() {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                 />
               </div>
 
@@ -306,7 +306,7 @@ export default function CustomersPage() {
                   required
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                 />
               </div>
 
@@ -318,7 +318,7 @@ export default function CustomersPage() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                 />
               </div>
 
@@ -330,7 +330,7 @@ export default function CustomersPage() {
                   type="text"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                 />
               </div>
 
@@ -342,14 +342,14 @@ export default function CustomersPage() {
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-base active:scale-98"
                 >
                   {selectedCustomer ? 'Update' : 'Add'} Customer
                 </button>
@@ -359,7 +359,7 @@ export default function CustomersPage() {
                     setShowForm(false);
                     setSelectedCustomer(null);
                   }}
-                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition-colors font-medium text-base active:scale-98"
                 >
                   Cancel
                 </button>

@@ -72,23 +72,23 @@ export default function ServicesPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-gray-800">Services</h2>
+          <h2 className="text-2xl lg:text-3xl font-bold text-gray-800">Services</h2>
           <p className="text-gray-600 mt-1">Manage your beauty services</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors active:scale-98 text-base w-full sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           <span>Add Service</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         {services.length === 0 ? (
-          <div className="col-span-full bg-white rounded-lg shadow-md p-12 text-center">
+          <div className="col-span-full bg-white rounded-lg shadow-md p-8 lg:p-12 text-center">
             <Scissors className="w-12 h-12 mx-auto mb-3 text-gray-400" />
             <p className="text-gray-500">No services found</p>
           </div>
@@ -96,7 +96,7 @@ export default function ServicesPage() {
           services.map((service) => (
             <div
               key={service.id}
-              className={`bg-white rounded-lg shadow-md p-6 border-2 transition-all ${
+              className={`bg-white rounded-lg shadow-md p-4 lg:p-6 border-2 transition-all ${
                 service.active ? 'border-green-200' : 'border-gray-200 opacity-60'
               }`}
             >
@@ -126,17 +126,17 @@ export default function ServicesPage() {
                 )}
               </div>
 
-              <div className="flex space-x-2">
+              <div className="flex gap-2">
                 <button
                   onClick={() => handleEdit(service)}
-                  className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                  className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors active:scale-98 text-base"
                 >
                   <Edit2 className="w-4 h-4" />
                   <span>Edit</span>
                 </button>
                 <button
                   onClick={() => handleDelete(service.id)}
-                  className="px-4 py-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                  className="px-4 py-3 text-red-600 border border-red-600 rounded-lg hover:bg-red-50 transition-colors active:scale-98"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

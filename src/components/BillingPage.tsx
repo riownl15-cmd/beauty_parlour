@@ -392,16 +392,16 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+      <div className="lg:col-span-2 space-y-4 lg:space-y-6">
         <div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Billing</h2>
-          <p className="text-gray-600">Create new invoice</p>
+          <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-2">Billing</h2>
+          <p className="text-sm lg:text-base text-gray-600">Create new invoice</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Barcode Scanner</h3>
-          <div className="flex space-x-2">
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
+          <h3 className="text-base lg:text-lg font-semibold text-gray-800 mb-4">Barcode Scanner</h3>
+          <div className="flex flex-col sm:flex-row gap-2">
             <div className="flex-1 relative">
               <Scan className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -410,20 +410,20 @@ export default function BillingPage() {
                 value={barcodeInput}
                 onChange={(e) => setBarcodeInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleBarcodeSearch()}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
               />
             </div>
             <button
               onClick={handleBarcodeSearch}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               Search
             </button>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Products & Services</h3>
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
+          <h3 className="text-base lg:text-lg font-semibold text-gray-800 mb-4">Products & Services</h3>
           <div className="relative mb-4">
             <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -431,7 +431,7 @@ export default function BillingPage() {
               placeholder="Search products or services..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
             />
           </div>
 
@@ -443,15 +443,15 @@ export default function BillingPage() {
                     key={product.id}
                     onClick={() => addToCart(product, 'product')}
                     disabled={product.stock_qty === 0}
-                    className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-98"
                   >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium text-gray-800">{product.name}</p>
+                    <div className="flex justify-between items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-800 text-base truncate">{product.name}</p>
                         <p className="text-sm text-gray-600">SKU: {product.sku}</p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-blue-600">₹{product.sale_price.toFixed(2)}</p>
+                      <div className="text-right flex-shrink-0">
+                        <p className="font-semibold text-blue-600 text-base">₹{product.sale_price.toFixed(2)}</p>
                         <p className="text-xs text-gray-500">Stock: {product.stock_qty}</p>
                       </div>
                     </div>
@@ -462,14 +462,14 @@ export default function BillingPage() {
                   <button
                     key={service.id}
                     onClick={() => addToCart(service, 'service')}
-                    className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                    className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors active:scale-98"
                   >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium text-gray-800">{service.name}</p>
+                    <div className="flex justify-between items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-800 text-base truncate">{service.name}</p>
                         <p className="text-sm text-gray-600">{service.duration} mins</p>
                       </div>
-                      <p className="font-semibold text-blue-600">₹{service.price.toFixed(2)}</p>
+                      <p className="font-semibold text-blue-600 text-base flex-shrink-0">₹{service.price.toFixed(2)}</p>
                     </div>
                   </button>
                 ))}
@@ -480,24 +480,24 @@ export default function BillingPage() {
       </div>
 
       <div className="lg:col-span-1">
-        <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
-          <div className="flex items-center space-x-2 mb-6">
-            <ShoppingCart className="w-6 h-6 text-blue-600" />
-            <h3 className="text-xl font-semibold text-gray-800">Cart ({cart.length})</h3>
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 lg:sticky lg:top-6">
+          <div className="flex items-center space-x-2 mb-4 lg:mb-6">
+            <ShoppingCart className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600" />
+            <h3 className="text-lg lg:text-xl font-semibold text-gray-800">Cart ({cart.length})</h3>
           </div>
 
-          <div className="space-y-4 mb-6">
+          <div className="space-y-3 lg:space-y-4 mb-4 lg:mb-6">
             <input
               type="text"
               placeholder="Customer Name (Optional)"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
             />
             <div className="relative">
               <input
                 type="tel"
-                placeholder="Phone Number (Optional) - Start typing to search"
+                placeholder="Phone Number (Optional)"
                 value={customerPhone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
                 onFocus={() => {
@@ -505,7 +505,7 @@ export default function BillingPage() {
                     setShowCustomerSuggestions(true);
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
               />
               {showCustomerSuggestions && filteredCustomers.length > 0 && (
                 <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -537,21 +537,21 @@ export default function BillingPage() {
             {cart.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <Receipt className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                <p>Cart is empty</p>
+                <p className="text-sm">Cart is empty</p>
               </div>
             ) : (
               cart.map((item, index) => (
                 <div key={`${item.type}-${item.id}-${index}`} className="border border-gray-200 rounded-lg p-3">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-800 text-sm">{item.name}</p>
+                  <div className="flex justify-between items-start mb-2 gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-800 text-sm truncate">{item.name}</p>
                       <p className="text-xs text-gray-600">
                         {item.type === 'product' ? 'Product' : 'Service'}
                       </p>
                     </div>
                     <button
                       onClick={() => removeFromCart(index)}
-                      className="text-red-600 hover:bg-red-50 p-1 rounded"
+                      className="text-red-600 hover:bg-red-50 p-2 rounded flex-shrink-0 active:scale-95"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -560,19 +560,19 @@ export default function BillingPage() {
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => updateQuantity(index, -1)}
-                        className="p-1 border border-gray-300 rounded hover:bg-gray-100"
+                        className="p-2 border border-gray-300 rounded hover:bg-gray-100 active:scale-95"
                       >
-                        <Minus className="w-3 h-3" />
+                        <Minus className="w-4 h-4" />
                       </button>
-                      <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
+                      <span className="text-base font-medium w-10 text-center">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(index, 1)}
-                        className="p-1 border border-gray-300 rounded hover:bg-gray-100"
+                        className="p-2 border border-gray-300 rounded hover:bg-gray-100 active:scale-95"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-4 h-4" />
                       </button>
                     </div>
-                    <p className="font-semibold text-gray-800">
+                    <p className="font-semibold text-gray-800 text-base">
                       ₹{(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
@@ -588,7 +588,7 @@ export default function BillingPage() {
                 <select
                   value={discountType}
                   onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'amount')}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
                 >
                   <option value="percentage">%</option>
                   <option value="amount">₹</option>
@@ -598,7 +598,7 @@ export default function BillingPage() {
                   step="0.01"
                   value={discountValue}
                   onChange={(e) => setDiscountValue(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
                 />
               </div>
             </div>
@@ -608,7 +608,7 @@ export default function BillingPage() {
               <select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
               >
                 <option value="cash">Cash</option>
                 <option value="card">Card</option>
@@ -617,22 +617,22 @@ export default function BillingPage() {
             </div>
           </div>
 
-          <div className="border-t border-gray-200 pt-4 space-y-2 mb-6">
-            <div className="flex justify-between text-sm">
+          <div className="border-t border-gray-200 pt-4 space-y-2 mb-4 lg:mb-6">
+            <div className="flex justify-between text-sm lg:text-base">
               <span className="text-gray-600">Subtotal</span>
               <span className="font-medium">₹{totals.subtotal.toFixed(2)}</span>
             </div>
             {totals.discountAmount > 0 && (
-              <div className="flex justify-between text-sm text-green-600">
+              <div className="flex justify-between text-sm lg:text-base text-green-600">
                 <span>Discount</span>
                 <span>-₹{totals.discountAmount.toFixed(2)}</span>
               </div>
             )}
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-sm lg:text-base">
               <span className="text-gray-600">Tax</span>
               <span className="font-medium">₹{totals.taxAmount.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-lg font-bold pt-2 border-t">
+            <div className="flex justify-between text-lg lg:text-xl font-bold pt-2 border-t">
               <span>Total</span>
               <span className="text-blue-600">₹{totals.total.toFixed(2)}</span>
             </div>
@@ -641,7 +641,7 @@ export default function BillingPage() {
           <button
             onClick={handleCheckout}
             disabled={cart.length === 0 || processing}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            className="w-full bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-base font-medium active:scale-98"
           >
             <Printer className="w-5 h-5" />
             <span>{processing ? 'Processing...' : 'Checkout & Print'}</span>
