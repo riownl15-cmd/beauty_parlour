@@ -91,24 +91,23 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
         <title>Receipt - ${invoice?.invoice_number || 'Invoice'}</title>
         <style>
           @page {
-            size: 80mm auto;
+            size: 72mm auto;
             margin: 0;
           }
           * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-weight: bold;
           }
           body {
-            width: 80mm;
+            width: 72mm;
             margin: 0;
-            padding: 5mm;
+            padding: 2mm;
             font-family: 'Courier New', monospace;
-            font-size: 11px;
-            line-height: 1.5;
+            font-size: 13px;
+            line-height: 1.3;
             background: white;
-            font-weight: bold;
+            font-weight: normal;
           }
           .receipt {
             width: 100%;
@@ -117,67 +116,65 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
             text-align: center;
           }
           .logo {
-            width: 50mm;
+            width: 40mm;
             height: auto;
-            margin: 0 auto 8px;
+            margin: 0 auto 4px;
             display: block;
           }
           .separator {
-            border-top: 2px dashed #000;
-            margin: 8px 0;
+            border-top: 1px dashed #000;
+            margin: 4px 0;
           }
           .separator-thick {
-            border-top: 3px solid #000;
-            margin: 8px 0;
+            border-top: 2px solid #000;
+            margin: 4px 0;
           }
           .flex {
             display: flex;
             justify-content: space-between;
-            margin: 4px 0;
-            font-weight: bold;
+            margin: 2px 0;
           }
           .item {
-            margin-bottom: 10px;
-            padding: 4px 0;
+            margin-bottom: 6px;
+            padding: 2px 0;
           }
           .item-header {
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 3px;
+            font-size: 14px;
+            margin-bottom: 2px;
           }
           .item-details {
             display: flex;
             justify-content: space-between;
-            font-size: 10px;
-            padding-left: 4px;
-            margin-top: 2px;
+            font-size: 12px;
+            padding-left: 2px;
+            margin-top: 1px;
           }
           .uppercase {
             text-transform: uppercase;
           }
           h1 {
-            font-size: 18px;
-            margin: 6px 0;
+            font-size: 20px;
+            margin: 3px 0;
             font-weight: bold;
           }
           h2 {
-            font-size: 14px;
-            margin: 6px 0;
+            font-size: 16px;
+            margin: 3px 0;
             font-weight: bold;
           }
           .total-section {
-            margin-top: 10px;
+            margin-top: 4px;
           }
           .total {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
-            padding: 4px 0;
+            padding: 2px 0;
           }
           p {
-            margin: 3px 0;
-            font-weight: bold;
+            margin: 2px 0;
+            font-size: 13px;
           }
         </style>
       </head>
