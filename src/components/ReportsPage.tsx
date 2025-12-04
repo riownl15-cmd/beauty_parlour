@@ -8,7 +8,13 @@ import {
   Download,
   Package,
   AlertCircle,
+  Receipt,
+  Printer,
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
+import InvoicePreview from './InvoicePreview';
 
 type SalesData = {
   totalSales: number;
@@ -31,6 +37,16 @@ type LowStockProduct = {
   low_stock_threshold: number;
 };
 
+type Invoice = {
+  id: string;
+  invoice_number: string;
+  customer_name: string | null;
+  customer_phone: string | null;
+  total_amount: number;
+  payment_method: string;
+  created_at: string;
+};
+
 export default function ReportsPage() {
   const [dateFrom, setDateFrom] = useState(
     new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0]
@@ -46,9 +62,27 @@ export default function ReportsPage() {
   const [lowStockProducts, setLowStockProducts] = useState<LowStockProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [invoiceDateFrom, setInvoiceDateFrom] = useState(new Date().toISOString().split('T')[0]);
+  const [invoiceDateTo, setInvoiceDateTo] = useState(new Date().toISOString().split('T')[0]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+  const [showInvoicePreview, setShowInvoicePreview] = useState(false);
+  const rowsPerPage = 100;
+
   useEffect(() => {
     loadReports();
   }, [dateFrom, dateTo]);
+
+  useEffect(() => {
+    loadInvoices();
+  }, [invoiceDateFrom, invoiceDateTo]);
+
+  useEffect(() => {
+    filterInvoices();
+  }, [invoices, searchTerm]);
 
   const loadReports = async () => {
     setLoading(true);
@@ -129,6 +163,49 @@ export default function ReportsPage() {
     }
   };
 
+  const loadInvoices = async () => {
+    try {
+      const fromDate = new Date(invoiceDateFrom).toISOString();
+      const toDate = new Date(new Date(invoiceDateTo).setHours(23, 59, 59)).toISOString();
+
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('id, invoice_number, customer_name, customer_phone, total_amount, payment_method, created_at')
+        .gte('created_at', fromDate)
+        .lte('created_at', toDate)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setInvoices(data || []);
+    } catch (error) {
+      console.error('Error loading invoices:', error);
+    }
+  };
+
+  const filterInvoices = () => {
+    if (!searchTerm.trim()) {
+      setFilteredInvoices(invoices);
+      setCurrentPage(1);
+      return;
+    }
+
+    const term = searchTerm.toLowerCase();
+    const filtered = invoices.filter(
+      (inv) =>
+        inv.invoice_number.toLowerCase().includes(term) ||
+        inv.customer_name?.toLowerCase().includes(term) ||
+        inv.customer_phone?.includes(term)
+    );
+    setFilteredInvoices(filtered);
+    setCurrentPage(1);
+  };
+
+  const handleReprintInvoice = (invoiceId: string) => {
+    setSelectedInvoiceId(invoiceId);
+    setShowInvoicePreview(true);
+  };
+
   const exportToCSV = () => {
     const headers = ['Metric', 'Value'];
     const data = [
@@ -150,6 +227,23 @@ export default function ReportsPage() {
     a.href = url;
     a.download = `sales-report-${dateFrom}-${dateTo}.csv`;
     a.click();
+  };
+
+  const paginatedInvoices = filteredInvoices.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
+  const totalPages = Math.ceil(filteredInvoices.length / rowsPerPage);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   if (loading) {
@@ -238,7 +332,7 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
           <div className="flex items-center space-x-2 mb-6">
             <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -303,6 +397,167 @@ export default function ReportsPage() {
           </div>
         </div>
       </div>
+
+      <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
+        <div className="flex items-center space-x-2 mb-6">
+          <Receipt className="w-6 h-6 text-blue-600" />
+          <h3 className="text-xl font-semibold text-gray-800">Sales Invoices</h3>
+        </div>
+
+        <div className="mb-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+              <input
+                type="date"
+                value={invoiceDateFrom}
+                onChange={(e) => setInvoiceDateFrom(e.target.value)}
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+              <input
+                type="date"
+                value={invoiceDateTo}
+                onChange={(e) => setInvoiceDateTo(e.target.value)}
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              />
+            </div>
+          </div>
+
+          <div className="relative">
+            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by bill number, customer name, or phone number..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+            />
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Bill Number
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Customer
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Phone
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Payment
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Date & Time
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {paginatedInvoices.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-12 text-center">
+                    <Receipt className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                    <p className="text-gray-500">No invoices found</p>
+                  </td>
+                </tr>
+              ) : (
+                paginatedInvoices.map((invoice) => (
+                  <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-4 text-sm font-medium text-blue-600">
+                      {invoice.invoice_number}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-gray-800">
+                      {invoice.customer_name || '-'}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-gray-600">
+                      {invoice.customer_phone || '-'}
+                    </td>
+                    <td className="px-4 py-4 text-sm font-semibold text-gray-900">
+                      ₹{invoice.total_amount.toFixed(2)}
+                    </td>
+                    <td className="px-4 py-4 text-sm">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        invoice.payment_method === 'cash'
+                          ? 'bg-green-100 text-green-800'
+                          : invoice.payment_method === 'card'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-purple-100 text-purple-800'
+                      }`}>
+                        {invoice.payment_method.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-sm text-gray-600">
+                      {formatDate(invoice.created_at)}
+                    </td>
+                    <td className="px-4 py-4 text-center">
+                      <button
+                        onClick={() => handleReprintInvoice(invoice.id)}
+                        className="inline-flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium active:scale-95"
+                        title="Reprint Invoice"
+                      >
+                        <Printer className="w-4 h-4" />
+                        <span>Reprint</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
+            <div className="text-sm text-gray-600">
+              Showing {((currentPage - 1) * rowsPerPage) + 1} to {Math.min(currentPage * rowsPerPage, filteredInvoices.length)} of {filteredInvoices.length} invoices
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Previous page"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="text-sm font-medium text-gray-700">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Next page"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {showInvoicePreview && selectedInvoiceId && (
+        <InvoicePreview
+          invoiceId={selectedInvoiceId}
+          onClose={() => {
+            setShowInvoicePreview(false);
+            setSelectedInvoiceId(null);
+          }}
+        />
+      )}
     </div>
   );
 }
