@@ -404,41 +404,102 @@ export default function BillingPage() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
       <div className="lg:col-span-2 space-y-4 lg:space-y-6">
         <div>
-          <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-2">Billing</h2>
-          <p className="text-sm lg:text-base text-gray-600">Create new invoice</p>
+          <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-2">New Invoice</h2>
+          <p className="text-sm lg:text-base text-gray-600">Scan items or search to add to cart</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
-          <h3 className="text-base lg:text-lg font-semibold text-gray-800 mb-4">Barcode Scanner</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <User className="w-5 h-5 text-gray-700" />
+            <h3 className="text-base lg:text-lg font-semibold text-gray-800">Customer Information</h3>
+            <span className="text-xs text-gray-500 ml-auto">Optional</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input
+              type="text"
+              placeholder="Customer Name"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+            />
+            <div className="relative">
+              <input
+                type="tel"
+                placeholder="Phone Number"
+                value={customerPhone}
+                onChange={(e) => handlePhoneChange(e.target.value)}
+                onFocus={() => {
+                  if (customerPhone.length >= 3 && filteredCustomers.length > 0) {
+                    setShowCustomerSuggestions(true);
+                  }
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              />
+              {showCustomerSuggestions && filteredCustomers.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {filteredCustomers.map((customer) => (
+                    <button
+                      key={customer.id}
+                      type="button"
+                      onClick={() => selectCustomer(customer)}
+                      className="w-full text-left px-4 py-3 hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-gray-500" />
+                        <div>
+                          <p className="font-medium text-gray-900">{customer.name}</p>
+                          <p className="text-sm text-gray-600">{customer.phone}</p>
+                          {customer.email && (
+                            <p className="text-xs text-gray-500">{customer.email}</p>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-md p-4 lg:p-6 border-2 border-blue-200">
+          <div className="flex items-center gap-2 mb-4">
+            <Scan className="w-5 h-5 text-blue-600" />
+            <h3 className="text-base lg:text-lg font-semibold text-gray-800">Quick Scan</h3>
+          </div>
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="flex-1 relative">
-              <Scan className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 ref={barcodeInputRef}
                 type="text"
-                placeholder="Scan or enter barcode..."
+                placeholder="Scan barcode here..."
                 value={barcodeInput}
                 onChange={(e) => setBarcodeInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleBarcodeSearch()}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                className="w-full px-4 py-4 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base font-medium bg-white"
               />
             </div>
             <button
               onClick={handleBarcodeSearch}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm active:scale-95"
             >
-              Search
+              Add
             </button>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
-          <h3 className="text-base lg:text-lg font-semibold text-gray-800 mb-4">Products & Services</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <Search className="w-5 h-5 text-gray-700" />
+            <h3 className="text-base lg:text-lg font-semibold text-gray-800">Browse Products & Services</h3>
+          </div>
+
           <div className="relative mb-4">
             <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search products or services..."
+              placeholder="Search by name or SKU..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
@@ -446,8 +507,13 @@ export default function BillingPage() {
           </div>
 
           <div className="max-h-96 overflow-y-auto space-y-2">
-            {searchTerm && (
+            {searchTerm ? (
               <>
+                {filteredProducts.length === 0 && filteredServices.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="text-sm">No products or services found</p>
+                  </div>
+                )}
                 {filteredProducts.map((product) => (
                   <button
                     key={product.id}
@@ -484,105 +550,72 @@ export default function BillingPage() {
                   </button>
                 ))}
               </>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Search className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">Start typing to search</p>
+              </div>
             )}
           </div>
         </div>
       </div>
 
       <div className="lg:col-span-1">
-        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 lg:sticky lg:top-6">
-          <div className="flex items-center space-x-2 mb-4 lg:mb-6">
-            <ShoppingCart className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600" />
-            <h3 className="text-lg lg:text-xl font-semibold text-gray-800">Cart ({cart.length})</h3>
-          </div>
-
-          <div className="space-y-3 lg:space-y-4 mb-4 lg:mb-6">
-            <input
-              type="text"
-              placeholder="Customer Name (Optional)"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-            />
-            <div className="relative">
-              <input
-                type="tel"
-                placeholder="Phone Number (Optional)"
-                value={customerPhone}
-                onChange={(e) => handlePhoneChange(e.target.value)}
-                onFocus={() => {
-                  if (customerPhone.length >= 3 && filteredCustomers.length > 0) {
-                    setShowCustomerSuggestions(true);
-                  }
-                }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-              />
-              {showCustomerSuggestions && filteredCustomers.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                  {filteredCustomers.map((customer) => (
-                    <button
-                      key={customer.id}
-                      type="button"
-                      onClick={() => selectCustomer(customer)}
-                      className="w-full text-left px-4 py-3 hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-gray-500" />
-                        <div>
-                          <p className="font-medium text-gray-900">{customer.name}</p>
-                          <p className="text-sm text-gray-600">{customer.phone}</p>
-                          {customer.email && (
-                            <p className="text-xs text-gray-500">{customer.email}</p>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+        <div className="bg-white rounded-lg shadow-lg p-4 lg:p-6 lg:sticky lg:top-6 border-t-4 border-blue-600">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <ShoppingCart className="w-6 h-6 text-blue-600" />
+              <h3 className="text-xl font-bold text-gray-800">Cart</h3>
             </div>
+            <span className="bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-full text-sm">
+              {cart.length}
+            </span>
           </div>
 
-          <div className="max-h-64 overflow-y-auto mb-4 space-y-2">
+          <div className="max-h-72 overflow-y-auto mb-4 space-y-2">
             {cart.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Receipt className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                <p className="text-sm">Cart is empty</p>
+              <div className="text-center py-12 text-gray-500">
+                <ShoppingCart className="w-16 h-16 mx-auto mb-3 text-gray-300" />
+                <p className="text-sm font-medium">Cart is empty</p>
+                <p className="text-xs text-gray-400 mt-1">Scan or search items to add</p>
               </div>
             ) : (
               cart.map((item, index) => (
-                <div key={`${item.type}-${item.id}-${index}`} className="border border-gray-200 rounded-lg p-3">
+                <div key={`${item.type}-${item.id}-${index}`} className="border border-gray-200 rounded-lg p-3 hover:border-blue-300 transition-colors bg-gray-50">
                   <div className="flex justify-between items-start mb-2 gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-800 text-sm truncate">{item.name}</p>
-                      <p className="text-xs text-gray-600">
-                        {item.type === 'product' ? 'Product' : 'Service'}
+                      <p className="font-semibold text-gray-800 text-sm truncate">{item.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {item.type === 'product' ? 'Product' : 'Service'} • ₹{item.price.toFixed(2)}
                       </p>
                     </div>
                     <button
                       onClick={() => removeFromCart(index)}
-                      className="text-red-600 hover:bg-red-50 p-2 rounded flex-shrink-0 active:scale-95"
+                      className="text-red-500 hover:bg-red-50 p-1.5 rounded flex-shrink-0 active:scale-95 transition-transform"
+                      title="Remove item"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                   <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-1">
                       <button
                         onClick={() => updateQuantity(index, -1)}
-                        className="p-2 border border-gray-300 rounded hover:bg-gray-100 active:scale-95"
+                        className="p-1.5 border border-gray-300 rounded hover:bg-gray-100 active:scale-95 transition-transform"
+                        title="Decrease quantity"
                       >
-                        <Minus className="w-4 h-4" />
+                        <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="text-base font-medium w-10 text-center">{item.quantity}</span>
+                      <span className="text-base font-bold w-12 text-center">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(index, 1)}
-                        className="p-2 border border-gray-300 rounded hover:bg-gray-100 active:scale-95"
+                        className="p-1.5 border border-gray-300 rounded hover:bg-gray-100 active:scale-95 transition-transform"
+                        title="Increase quantity"
                       >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <p className="font-semibold text-gray-800 text-base">
+                    <p className="font-bold text-gray-900 text-base">
                       ₹{(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
@@ -591,67 +624,72 @@ export default function BillingPage() {
             )}
           </div>
 
-          <div className="border-t border-gray-200 pt-4 space-y-3 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Discount</label>
-              <div className="flex space-x-2">
-                <select
-                  value={discountType}
-                  onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'amount')}
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
-                >
-                  <option value="percentage">%</option>
-                  <option value="amount">₹</option>
-                </select>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={discountValue}
-                  onChange={(e) => setDiscountValue(e.target.value)}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-                />
-              </div>
-            </div>
+          {cart.length > 0 && (
+            <>
+              <div className="border-t-2 border-gray-200 pt-4 space-y-3 mb-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Discount</label>
+                  <div className="flex gap-2">
+                    <select
+                      value={discountType}
+                      onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'amount')}
+                      className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base font-medium"
+                    >
+                      <option value="percentage">%</option>
+                      <option value="amount">₹</option>
+                    </select>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={discountValue}
+                      onChange={(e) => setDiscountValue(e.target.value)}
+                      placeholder="0"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                    />
+                  </div>
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
-              >
-                <option value="cash">Cash</option>
-                <option value="card">Card</option>
-                <option value="upi">UPI</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200 pt-4 space-y-2 mb-4 lg:mb-6">
-            <div className="flex justify-between text-sm lg:text-base">
-              <span className="text-gray-600">Subtotal</span>
-              <span className="font-medium">₹{totals.subtotal.toFixed(2)}</span>
-            </div>
-            {totals.discountAmount > 0 && (
-              <div className="flex justify-between text-sm lg:text-base text-green-600">
-                <span>Discount</span>
-                <span>-₹{totals.discountAmount.toFixed(2)}</span>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Payment Method</label>
+                  <select
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
+                  >
+                    <option value="cash">Cash</option>
+                    <option value="card">Card</option>
+                    <option value="upi">UPI</option>
+                  </select>
+                </div>
               </div>
-            )}
-            <div className="flex justify-between text-sm lg:text-base">
-              <span className="text-gray-600">Tax</span>
-              <span className="font-medium">₹{totals.taxAmount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-lg lg:text-xl font-bold pt-2 border-t">
-              <span>Total</span>
-              <span className="text-blue-600">₹{totals.total.toFixed(2)}</span>
-            </div>
-          </div>
+
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2 mb-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="font-semibold">₹{totals.subtotal.toFixed(2)}</span>
+                </div>
+                {totals.discountAmount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span className="font-medium">Discount</span>
+                    <span className="font-semibold">-₹{totals.discountAmount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Tax</span>
+                  <span className="font-semibold">₹{totals.taxAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-xl font-bold pt-3 border-t-2 border-gray-300">
+                  <span className="text-gray-800">Total</span>
+                  <span className="text-blue-600">₹{totals.total.toFixed(2)}</span>
+                </div>
+              </div>
+            </>
+          )}
 
           <button
             onClick={handleCheckout}
             disabled={cart.length === 0 || processing}
-            className="w-full bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-base font-medium active:scale-98"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-base font-bold active:scale-98 shadow-md disabled:shadow-none"
           >
             <Printer className="w-5 h-5" />
             <span>{processing ? 'Processing...' : 'Checkout & Print'}</span>
