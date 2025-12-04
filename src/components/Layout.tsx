@@ -1,4 +1,4 @@
-import { Menu, Package, ShoppingCart, BarChart3, Settings, Box, DollarSign, Tag } from 'lucide-react';
+import { Menu, Package, ShoppingCart, BarChart3, Settings, Box, DollarSign, Tag, Users } from 'lucide-react';
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -9,6 +9,7 @@ type LayoutProps = {
 export default function Layout({ children, currentPage, onPageChange }: LayoutProps) {
   const menuItems = [
     { id: 'billing', label: 'Billing', icon: ShoppingCart },
+    { id: 'customers', label: 'Customers', icon: Users },
     { id: 'products', label: 'Products', icon: Package },
     { id: 'categories', label: 'Categories', icon: Tag },
     { id: 'services', label: 'Services', icon: Menu },

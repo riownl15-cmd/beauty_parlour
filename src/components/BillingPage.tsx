@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase, type Product, type Service } from '../lib/supabase';
+import { supabase, type Product, type Service, type Customer } from '../lib/supabase';
 import {
   ShoppingCart,
   Plus,
@@ -9,6 +9,7 @@ import {
   Printer,
   Receipt,
   Scan,
+  User,
 } from 'lucide-react';
 import InvoicePreview from './InvoicePreview';
 
@@ -32,6 +33,10 @@ export default function BillingPage() {
   const [barcodeInput, setBarcodeInput] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
+  const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [discountType, setDiscountType] = useState<'percentage' | 'amount'>('percentage');
   const [discountValue, setDiscountValue] = useState('0');
   const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -46,16 +51,19 @@ export default function BillingPage() {
 
   const loadData = async () => {
     try {
-      const [productsResult, servicesResult] = await Promise.all([
+      const [productsResult, servicesResult, customersResult] = await Promise.all([
         supabase.from('products').select('*').order('name'),
         supabase.from('services').select('*').eq('active', true).order('name'),
+        supabase.from('customers').select('*').order('created_at', { ascending: false }),
       ]);
 
       if (productsResult.error) throw productsResult.error;
       if (servicesResult.error) throw servicesResult.error;
+      if (customersResult.error) throw customersResult.error;
 
       setProducts(productsResult.data || []);
       setServices(servicesResult.data || []);
+      setCustomers(customersResult.data || []);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -169,6 +177,29 @@ export default function BillingPage() {
     }
   };
 
+  const handlePhoneChange = (value: string) => {
+    setCustomerPhone(value);
+
+    if (value.length >= 3) {
+      const matches = customers.filter(
+        (c) => c.phone.includes(value) || c.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredCustomers(matches);
+      setShowCustomerSuggestions(matches.length > 0);
+    } else {
+      setFilteredCustomers([]);
+      setShowCustomerSuggestions(false);
+    }
+  };
+
+  const selectCustomer = (customer: Customer) => {
+    setCustomerName(customer.name);
+    setCustomerPhone(customer.phone);
+    setSelectedCustomerId(customer.id);
+    setShowCustomerSuggestions(false);
+    setFilteredCustomers([]);
+  };
+
   const handleCheckout = async () => {
     if (cart.length === 0) {
       alert('Cart is empty');
@@ -179,6 +210,37 @@ export default function BillingPage() {
 
     try {
       const totals = calculateTotals();
+
+      let customerId = selectedCustomerId;
+
+      if (customerPhone && customerName && !customerId) {
+        const existingCustomer = customers.find((c) => c.phone === customerPhone);
+
+        if (existingCustomer) {
+          customerId = existingCustomer.id;
+        } else {
+          const { data: newCustomer, error: customerError } = await supabase
+            .from('customers')
+            .insert([
+              {
+                name: customerName,
+                phone: customerPhone,
+                email: '',
+                address: '',
+                notes: '',
+              },
+            ])
+            .select()
+            .single();
+
+          if (customerError) {
+            console.error('Error creating customer:', customerError);
+          } else if (newCustomer) {
+            customerId = newCustomer.id;
+            setCustomers([...customers, newCustomer]);
+          }
+        }
+      }
 
       const { data: settingsData } = await supabase
         .from('settings')
@@ -204,6 +266,7 @@ export default function BillingPage() {
         .insert([
           {
             invoice_number: invoiceNumber,
+            customer_id: customerId,
             customer_name: customerName,
             customer_phone: customerPhone,
             subtotal: totals.subtotal,
@@ -284,6 +347,7 @@ export default function BillingPage() {
       setCart([]);
       setCustomerName('');
       setCustomerPhone('');
+      setSelectedCustomerId(null);
       setDiscountValue('0');
       setSearchTerm('');
 
@@ -415,13 +479,43 @@ export default function BillingPage() {
               onChange={(e) => setCustomerName(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <input
-              type="tel"
-              placeholder="Phone Number (Optional)"
-              value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+            <div className="relative">
+              <input
+                type="tel"
+                placeholder="Phone Number (Optional) - Start typing to search"
+                value={customerPhone}
+                onChange={(e) => handlePhoneChange(e.target.value)}
+                onFocus={() => {
+                  if (customerPhone.length >= 3 && filteredCustomers.length > 0) {
+                    setShowCustomerSuggestions(true);
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              {showCustomerSuggestions && filteredCustomers.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {filteredCustomers.map((customer) => (
+                    <button
+                      key={customer.id}
+                      type="button"
+                      onClick={() => selectCustomer(customer)}
+                      className="w-full text-left px-4 py-3 hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-gray-500" />
+                        <div>
+                          <p className="font-medium text-gray-900">{customer.name}</p>
+                          <p className="text-sm text-gray-600">{customer.phone}</p>
+                          {customer.email && (
+                            <p className="text-xs text-gray-500">{customer.email}</p>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="max-h-64 overflow-y-auto mb-4 space-y-2">

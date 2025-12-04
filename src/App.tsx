@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Layout from './components/Layout';
 import BillingPage from './components/BillingPage';
+import CustomersPage from './components/CustomersPage';
 import ProductsPage from './components/ProductsPage';
 import CategoriesPage from './components/CategoriesPage';
 import ServicesPage from './components/ServicesPage';
@@ -15,6 +16,8 @@ function App() {
     switch (currentPage) {
       case 'billing':
         return <BillingPage />;
+      case 'customers':
+        return <CustomersPage />;
       case 'products':
         return <ProductsPage />;
       case 'categories':

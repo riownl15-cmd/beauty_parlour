@@ -54,6 +54,7 @@ export type StockMovement = {
 export type Invoice = {
   id: string;
   invoice_number: string;
+  customer_id: string | null;
   customer_name: string;
   customer_phone: string;
   subtotal: number;
@@ -85,5 +86,16 @@ export type Settings = {
   id: string;
   key: string;
   value: string;
+  updated_at: string;
+};
+
+export type Customer = {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  notes: string;
+  created_at: string;
   updated_at: string;
 };
