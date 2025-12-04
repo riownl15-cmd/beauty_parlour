@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, type Customer, type Invoice } from '../lib/supabase';
-import { Users, Phone, Mail, MapPin, Plus, X, History, DollarSign } from 'lucide-react';
+import { Users, Phone, Mail, MapPin, Plus, X, History, DollarSign, Edit2, Trash2 } from 'lucide-react';
 
 type CustomerWithStats = Customer & {
   total_purchases: number;
@@ -225,24 +225,27 @@ export default function CustomersPage() {
                 )}
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+              <div className="flex gap-2">
                 <button
                   onClick={() => handleViewHistory(customer)}
-                  className="px-4 py-3 text-base bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors active:scale-98"
+                  className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors active:scale-95"
+                  title="View History"
                 >
-                  History
+                  <History className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => handleEdit(customer)}
-                  className="px-4 py-3 text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors active:scale-98"
+                  className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors active:scale-95"
+                  title="Edit"
                 >
-                  Edit
+                  <Edit2 className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => handleDelete(customer.id)}
-                  className="px-4 py-3 text-base bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors active:scale-98"
+                  className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors active:scale-95"
+                  title="Delete"
                 >
-                  Delete
+                  <Trash2 className="w-5 h-5" />
                 </button>
               </div>
             </div>
