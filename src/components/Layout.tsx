@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, Package, ShoppingCart, BarChart3, Settings, Box, Tag, Users, X, LogOut } from 'lucide-react';
+import { Menu, Package, ShoppingCart, BarChart3, Settings, Box, Tag, Users, X, LogOut, Barcode } from 'lucide-react';
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -18,6 +18,7 @@ export default function Layout({ children, currentPage, onPageChange, onLogout }
     { id: 'categories', label: 'Categories', icon: Tag },
     { id: 'services', label: 'Services', icon: Menu },
     { id: 'stock', label: 'Stock', icon: Box },
+    { id: 'barcode', label: 'Barcode', icon: Barcode },
     { id: 'reports', label: 'Reports', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];

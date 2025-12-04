@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, type Product, type Category } from '../lib/supabase';
-import { Plus, Edit2, Trash2, Package, Search, AlertCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Package, Search, AlertCircle, Printer } from 'lucide-react';
 import ProductForm from './ProductForm';
 
 export default function ProductsPage() {
@@ -72,6 +72,141 @@ export default function ProductsPage() {
   const getCategoryName = (categoryId: string | null) => {
     const category = categories.find((c) => c.id === categoryId);
     return category?.name || 'Uncategorized';
+  };
+
+  const generateBarcodeImage = (code: string): string => {
+    const barWidth = 3;
+    const barHeight = 100;
+    const width = code.length * barWidth * 8;
+    const height = barHeight + 40;
+
+    let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
+    svg += `<rect width="${width}" height="${height}" fill="white"/>`;
+
+    let xPos = 10;
+    for (const digit of code) {
+      const bits = getBarPattern(digit);
+      for (const bit of bits) {
+        if (bit === '1') {
+          svg += `<rect x="${xPos}" y="10" width="${barWidth}" height="${barHeight}" fill="black"/>`;
+        }
+        xPos += barWidth;
+      }
+    }
+
+    svg += `<text x="${width / 2}" y="${barHeight + 30}" font-size="14" font-family="monospace" text-anchor="middle" font-weight="bold">${code}</text>`;
+    svg += `</svg>`;
+
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
+  };
+
+  const getBarPattern = (digit: string): string => {
+    const patterns: Record<string, string> = {
+      '0': '11011001100',
+      '1': '11001101100',
+      '2': '11001100110',
+      '3': '10010011000',
+      '4': '10010001100',
+      '5': '10001001100',
+      '6': '10011001000',
+      '7': '10011000100',
+      '8': '10001100100',
+      '9': '11010001100',
+      A: '11001011000',
+      B: '11001000110',
+      C: '11000101110',
+      D: '11000100100',
+      E: '11000010100',
+      F: '11000001010',
+    };
+
+    return patterns[digit] || '00000000';
+  };
+
+  const printLabel = (product: Product) => {
+    if (!product.barcode) return;
+
+    const printWindow = window.open('', '', 'width=400,height=300');
+    if (!printWindow) return;
+
+    const barcodeImage = generateBarcodeImage(product.barcode);
+
+    const labelHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Barcode Label - ${product.name}</title>
+        <style>
+          @page {
+            size: 80mm 40mm;
+            margin: 0;
+          }
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            width: 80mm;
+            height: 40mm;
+            padding: 4mm;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: white;
+          }
+          .label {
+            text-align: center;
+            width: 100%;
+          }
+          .product-name {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 4mm;
+            text-transform: uppercase;
+          }
+          .barcode-container {
+            margin: 2mm 0;
+          }
+          .barcode-container img {
+            max-width: 70mm;
+            height: auto;
+          }
+          .price {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 2mm;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="label">
+          <div class="product-name">${product.name}</div>
+          <div class="barcode-container">
+            <img src="${barcodeImage}" alt="Barcode" />
+          </div>
+          <div class="price">₹${product.sale_price.toFixed(2)}</div>
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            }, 250);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(labelHTML);
+    printWindow.document.close();
   };
 
   const filteredProducts = products.filter(
@@ -213,15 +348,26 @@ export default function ProductsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex space-x-2">
+                      {product.barcode && (
+                        <button
+                          onClick={() => printLabel(product)}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title="Print Label"
+                        >
+                          <Printer className="w-4 h-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleEdit(product)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Edit Product"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(product.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete Product"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

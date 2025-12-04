@@ -112,11 +112,39 @@ export default function BarcodeGenerator({
     alert('Barcode copied to clipboard!');
   };
 
-  const downloadBarcode = () => {
-    const link = document.createElement('a');
-    link.href = displayBarcode;
-    link.download = `barcode-${barcode}.png`;
-    link.click();
+  const convertSvgToPng = async (svgDataUrl: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        } else {
+          reject(new Error('Failed to get canvas context'));
+        }
+      };
+      img.onerror = reject;
+      img.src = svgDataUrl;
+    });
+  };
+
+  const downloadBarcode = async () => {
+    try {
+      const pngDataUrl = await convertSvgToPng(displayBarcode);
+      const link = document.createElement('a');
+      link.href = pngDataUrl;
+      link.download = `barcode-${barcode}.png`;
+      link.click();
+    } catch (error) {
+      console.error('Error downloading barcode:', error);
+      alert('Failed to download barcode');
+    }
   };
 
   const useThisBarcode = () => {

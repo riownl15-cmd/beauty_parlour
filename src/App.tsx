@@ -7,6 +7,7 @@ import ProductsPage from './components/ProductsPage';
 import CategoriesPage from './components/CategoriesPage';
 import ServicesPage from './components/ServicesPage';
 import StockPage from './components/StockPage';
+import BarcodePage from './components/BarcodePage';
 import ReportsPage from './components/ReportsPage';
 import SettingsPage from './components/SettingsPage';
 
@@ -47,6 +48,8 @@ function App() {
         return <ServicesPage />;
       case 'stock':
         return <StockPage />;
+      case 'barcode':
+        return <BarcodePage />;
       case 'reports':
         return <ReportsPage />;
       case 'settings':
