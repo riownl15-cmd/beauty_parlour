@@ -183,15 +183,14 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
         <div class="receipt">
           <div class="center">
             ${logoBase64 ? `<img src="${logoBase64}" class="logo" alt="Logo" />` : ''}
+            ${settings.store_address ? `<p>${settings.store_address}</p>` : ''}
+            ${settings.store_phone ? `<p>Tel: ${settings.store_phone}</p>` : ''}
           </div>
 
           <div class="separator"></div>
 
           <div class="center">
-            <div class="flex" style="justify-content: center; gap: 8px;">
-              <h2>INVOICE</h2>
-              <h2>#${invoice?.invoice_number || ''}</h2>
-            </div>
+            <p style="font-size: 14px; font-weight: bold;">INVOICE #${invoice?.invoice_number || ''}</p>
             <p>${invoice?.created_at ? formatDate(invoice.created_at) : ''}</p>
           </div>
 
@@ -388,12 +387,18 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
                   alt="Store Logo"
                   className="w-32 h-auto mx-auto"
                 />
+                {settings.store_address && (
+                  <p className="text-xs font-bold mb-1">{settings.store_address}</p>
+                )}
+                {settings.store_phone && (
+                  <p className="text-xs font-bold mb-1">Tel: {settings.store_phone}</p>
+                )}
               </div>
 
               <div className="border-t-2 border-dashed border-gray-600 my-3"></div>
 
               <div className="text-center text-sm mb-3">
-                <p className="font-bold text-base">INVOICE #{invoice.invoice_number}</p>
+                <p className="font-bold text-sm">INVOICE #{invoice.invoice_number}</p>
                 <p className="text-xs font-bold">{formatDate(invoice.created_at)}</p>
               </div>
 
