@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Settings, Save, Store } from 'lucide-react';
+import { Settings, Save, Store, Lock, Phone } from 'lucide-react';
+import bcrypt from 'bcryptjs';
 
 type SettingsData = {
   default_tax_rate: string;
@@ -22,6 +23,12 @@ export default function SettingsPage() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordChanging, setPasswordChanging] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -86,6 +93,73 @@ export default function SettingsPage() {
       alert('Error saving settings. Please try again.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert('New password and confirm password do not match!');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      alert('New password must be at least 6 characters long!');
+      return;
+    }
+
+    setPasswordChanging(true);
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        alert('User not found. Please login again.');
+        return;
+      }
+
+      const { data: user, error: fetchError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (!user) {
+        alert('User not found.');
+        return;
+      }
+
+      const isValidOldPassword = await bcrypt.compare(passwordData.oldPassword, user.password);
+
+      if (!isValidOldPassword) {
+        alert('Old password is incorrect!');
+        return;
+      }
+
+      const hashedNewPassword = await bcrypt.hash(passwordData.newPassword, 10);
+
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          password: hashedNewPassword,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+
+      if (updateError) throw updateError;
+
+      alert('Password changed successfully!');
+      setPasswordData({
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+    } catch (error) {
+      console.error('Error changing password:', error);
+      alert('Error changing password. Please try again.');
+    } finally {
+      setPasswordChanging(false);
     }
   };
 
@@ -201,6 +275,89 @@ export default function SettingsPage() {
                 {settings.invoice_prefix}-1002, etc.
               </p>
             </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
+          <div className="flex items-center space-x-2 mb-6">
+            <Lock className="w-6 h-6 text-blue-600" />
+            <h3 className="text-xl font-semibold text-gray-800">Change Password</h3>
+          </div>
+
+          <form onSubmit={handlePasswordChange} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Old Password
+              </label>
+              <input
+                type="password"
+                value={passwordData.oldPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
+                required
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                placeholder="Enter your current password"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                New Password
+              </label>
+              <input
+                type="password"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                required
+                minLength={6}
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                placeholder="Enter your new password"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Re-enter New Password
+              </label>
+              <input
+                type="password"
+                value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                required
+                minLength={6}
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                placeholder="Re-enter your new password"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={passwordChanging}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            >
+              <Lock className="w-5 h-5" />
+              <span>{passwordChanging ? 'Changing Password...' : 'Change Password'}</span>
+            </button>
+          </form>
+        </div>
+
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-md p-6 lg:p-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <Phone className="w-8 h-8" />
+            <h3 className="text-2xl font-semibold">Need Help?</h3>
+          </div>
+          <p className="text-blue-100 mb-4 text-lg">
+            If you have any queries or need assistance, feel free to contact us.
+          </p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+            <p className="text-sm text-blue-100 mb-2">Contact Person</p>
+            <p className="text-xl font-bold mb-1">Gokul</p>
+            <a
+              href="tel:6383702551"
+              className="text-2xl font-bold hover:text-blue-200 transition-colors inline-flex items-center gap-2"
+            >
+              <Phone className="w-5 h-5" />
+              6383702551
+            </a>
           </div>
         </div>
 

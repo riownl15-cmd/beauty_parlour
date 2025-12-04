@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { Menu, Package, ShoppingCart, BarChart3, Settings, Box, Tag, Users, X } from 'lucide-react';
+import { Menu, Package, ShoppingCart, BarChart3, Settings, Box, Tag, Users, X, LogOut } from 'lucide-react';
 
 type LayoutProps = {
   children: React.ReactNode;
   currentPage: string;
   onPageChange: (page: string) => void;
+  onLogout: () => void;
 };
 
-export default function Layout({ children, currentPage, onPageChange }: LayoutProps) {
+export default function Layout({ children, currentPage, onPageChange, onLogout }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItems = [
@@ -56,7 +57,7 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
             </button>
           </div>
         </div>
-        <nav className="p-4 space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+        <nav className="p-4 space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)' }}>
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -75,6 +76,15 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
             );
           })}
         </nav>
+        <div className="p-4 border-t border-gray-200">
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-red-600 hover:bg-red-50"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">Logout</span>
+          </button>
+        </div>
       </aside>
 
       <main className="flex-1 overflow-auto w-full">
