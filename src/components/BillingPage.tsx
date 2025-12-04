@@ -11,6 +11,8 @@ import {
   Scan,
   User,
   Menu,
+  Scissors,
+  Package,
 } from 'lucide-react';
 import InvoicePreview from './InvoicePreview';
 
@@ -97,7 +99,13 @@ export default function BillingPage({ onSidebarToggle }: BillingPageProps) {
       if (servicesResult.error) throw servicesResult.error;
       if (customersResult.error) throw customersResult.error;
 
-      setProducts(productsResult.data || []);
+      const sortedProducts = (productsResult.data || []).sort((a, b) => {
+        if (!a.barcode && b.barcode) return -1;
+        if (a.barcode && !b.barcode) return 1;
+        return a.name.localeCompare(b.name);
+      });
+
+      setProducts(sortedProducts);
       setServices(servicesResult.data || []);
       setCustomers(customersResult.data || []);
       setStoreLogo(settingsResult.data?.value || '');
@@ -555,6 +563,25 @@ export default function BillingPage({ onSidebarToggle }: BillingPageProps) {
                   <p className="text-sm">No products or services found</p>
                 </div>
               )}
+              {filteredServices.map((service) => (
+                <button
+                  key={service.id}
+                  onClick={() => addToCart(service, 'service')}
+                  className="w-full text-left p-4 border border-purple-200 rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors active:scale-98"
+                >
+                  <div className="flex justify-between items-center gap-3">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <Scissors className="w-5 h-5 text-purple-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-800 text-base truncate">{service.name}</p>
+                        <p className="text-sm text-gray-600">{service.duration} mins</p>
+                      </div>
+                    </div>
+                    <p className="font-semibold text-purple-600 text-base flex-shrink-0">₹{service.price.toFixed(2)}</p>
+                  </div>
+                </button>
+              ))}
+
               {filteredProducts.map((product) => (
                 <button
                   key={product.id}
@@ -563,9 +590,12 @@ export default function BillingPage({ onSidebarToggle }: BillingPageProps) {
                   className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-98"
                 >
                   <div className="flex justify-between items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-800 text-base truncate">{product.name}</p>
-                      <p className="text-sm text-gray-600">SKU: {product.sku}</p>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <Package className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-800 text-base truncate">{product.name}</p>
+                        <p className="text-sm text-gray-600">SKU: {product.sku}</p>
+                      </div>
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="font-semibold text-blue-600 text-base">₹{product.sale_price.toFixed(2)}</p>
@@ -574,69 +604,71 @@ export default function BillingPage({ onSidebarToggle }: BillingPageProps) {
                   </div>
                 </button>
               ))}
-
-              {filteredServices.map((service) => (
-                <button
-                  key={service.id}
-                  onClick={() => addToCart(service, 'service')}
-                  className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors active:scale-98"
-                >
-                  <div className="flex justify-between items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-800 text-base truncate">{service.name}</p>
-                      <p className="text-sm text-gray-600">{service.duration} mins</p>
-                    </div>
-                    <p className="font-semibold text-blue-600 text-base flex-shrink-0">₹{service.price.toFixed(2)}</p>
-                  </div>
-                </button>
-              ))}
             </div>
           ) : (
-            <div className="max-h-96 overflow-y-auto">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {products.map((product) => (
-                  <button
-                    key={product.id}
-                    onClick={() => addToCart(product, 'product')}
-                    disabled={product.stock_qty === 0}
-                    className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 flex flex-col items-center justify-center text-center"
-                  >
-                    <div className="w-16 h-16 flex items-center justify-center mb-3">
-                      {product.image_url ? (
-                        <img
-                          src={product.image_url}
-                          alt={product.name}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      ) : storeLogo ? (
-                        <img
-                          src={storeLogo}
-                          alt={product.name}
-                          className="w-full h-full object-contain rounded-lg opacity-30"
-                        />
-                      ) : (
-                        <span className="text-5xl">{getProductEmoji(product.name)}</span>
-                      )}
-                    </div>
-                    <p className="font-semibold text-gray-800 text-sm mb-1 line-clamp-2">{product.name}</p>
-                    <p className="text-blue-600 font-bold text-base">₹{product.sale_price.toFixed(2)}</p>
-                  </button>
-                ))}
+            <div className="max-h-96 overflow-y-auto space-y-6">
+              {services.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3 sticky top-0 bg-gray-50 py-2 z-10">
+                    <Scissors className="w-5 h-5 text-purple-600" />
+                    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Services</h4>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    {services.map((service) => (
+                      <button
+                        key={service.id}
+                        onClick={() => addToCart(service, 'service')}
+                        className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-purple-400 hover:shadow-lg transition-all active:scale-95 flex flex-col items-center justify-center text-center"
+                      >
+                        <div className="w-16 h-16 flex items-center justify-center mb-3">
+                          <Scissors className="w-12 h-12 text-purple-600" />
+                        </div>
+                        <p className="font-semibold text-gray-800 text-sm mb-1 line-clamp-2">{service.name}</p>
+                        <p className="text-purple-600 font-bold text-base">₹{service.price.toFixed(2)}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-                {services.map((service) => (
-                  <button
-                    key={service.id}
-                    onClick={() => addToCart(service, 'service')}
-                    className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 hover:shadow-lg transition-all active:scale-95 flex flex-col items-center justify-center text-center"
-                  >
-                    <div className="w-16 h-16 flex items-center justify-center mb-3 text-5xl">
-                      <span>💆</span>
-                    </div>
-                    <p className="font-semibold text-gray-800 text-sm mb-1 line-clamp-2">{service.name}</p>
-                    <p className="text-blue-600 font-bold text-base">₹{service.price.toFixed(2)}</p>
-                  </button>
-                ))}
-              </div>
+              {products.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3 sticky top-0 bg-gray-50 py-2 z-10">
+                    <Package className="w-5 h-5 text-blue-600" />
+                    <h4 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Products</h4>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    {products.map((product) => (
+                      <button
+                        key={product.id}
+                        onClick={() => addToCart(product, 'product')}
+                        disabled={product.stock_qty === 0}
+                        className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 flex flex-col items-center justify-center text-center"
+                      >
+                        <div className="w-16 h-16 flex items-center justify-center mb-3">
+                          {product.image_url ? (
+                            <img
+                              src={product.image_url}
+                              alt={product.name}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          ) : storeLogo ? (
+                            <img
+                              src={storeLogo}
+                              alt={product.name}
+                              className="w-full h-full object-contain rounded-lg opacity-30"
+                            />
+                          ) : (
+                            <span className="text-5xl">{getProductEmoji(product.name)}</span>
+                          )}
+                        </div>
+                        <p className="font-semibold text-gray-800 text-sm mb-1 line-clamp-2">{product.name}</p>
+                        <p className="text-blue-600 font-bold text-base">₹{product.sale_price.toFixed(2)}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
