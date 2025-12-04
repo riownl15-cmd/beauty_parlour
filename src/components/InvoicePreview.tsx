@@ -82,6 +82,18 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
       console.error('Error loading logo:', error);
     }
 
+    const formatDateTime = (dateString: string) => {
+      const date = new Date(dateString);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = String(date.getFullYear()).slice(-2);
+      let hours = date.getHours();
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12 || 12;
+      return `${day}/${month}/${year} : ${hours}.${minutes} ${ampm}`;
+    };
+
     const receiptHTML = `
       <!DOCTYPE html>
       <html>
@@ -121,6 +133,7 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
             height: auto;
             margin: 0 auto 4px;
             display: block;
+            filter: brightness(0) saturate(100%);
           }
           .separator {
             border-top: 1px dashed #000;
@@ -189,9 +202,15 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
 
           <div class="separator"></div>
 
-          <div class="center">
-            <p style="font-size: 14px; font-weight: bold;">INVOICE #${invoice?.invoice_number || ''}</p>
-            <p>${invoice?.created_at ? formatDate(invoice.created_at) : ''}</p>
+          <div>
+            <div class="flex">
+              <span>Inv No:</span>
+              <span>#${invoice?.invoice_number || ''}</span>
+            </div>
+            <div class="flex">
+              <span>Date&Time:</span>
+              <span>${invoice?.created_at ? formatDateTime(invoice.created_at) : ''}</span>
+            </div>
           </div>
 
           ${invoice?.customer_name || invoice?.customer_phone ? `
@@ -356,6 +375,18 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
     });
   };
 
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    let hours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    hours = hours % 12 || 12;
+    return `${day}/${month}/${year} : ${hours}.${minutes} ${ampm}`;
+  };
+
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -386,6 +417,7 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
                   src="/asset_2smile_struct.png"
                   alt="Store Logo"
                   className="w-32 h-auto mx-auto"
+                  style={{ filter: 'brightness(0) saturate(100%)' }}
                 />
                 {settings.store_address && (
                   <p className="text-xs font-bold mb-1">{settings.store_address}</p>
@@ -397,9 +429,15 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
 
               <div className="border-t-2 border-dashed border-gray-600 my-3"></div>
 
-              <div className="text-center text-sm mb-3">
-                <p className="font-bold text-sm">INVOICE #{invoice.invoice_number}</p>
-                <p className="text-xs font-bold">{formatDate(invoice.created_at)}</p>
+              <div className="text-xs mb-3">
+                <div className="flex justify-between font-bold">
+                  <span>Inv No:</span>
+                  <span>#{invoice.invoice_number}</span>
+                </div>
+                <div className="flex justify-between font-bold">
+                  <span>Date&Time:</span>
+                  <span>{formatDateTime(invoice.created_at)}</span>
+                </div>
               </div>
 
               {(invoice.customer_name || invoice.customer_phone) && (
