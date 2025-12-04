@@ -6,11 +6,13 @@ type LayoutProps = {
   currentPage: string;
   onPageChange: (page: string) => void;
   onLogout: () => void;
+  showSidebar?: boolean;
+  sidebarExpanded?: boolean;
+  onSidebarToggle?: () => void;
 };
 
-export default function Layout({ children, currentPage, onPageChange, onLogout }: LayoutProps) {
+export default function Layout({ children, currentPage, onPageChange, onLogout, showSidebar = true, sidebarExpanded = true, onSidebarToggle }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isHoverMenuOpen, setIsHoverMenuOpen] = useState(false);
 
   const menuItems = [
     { id: 'billing', label: 'Billing', icon: ShoppingCart },
@@ -27,19 +29,7 @@ export default function Layout({ children, currentPage, onPageChange, onLogout }
   const handleMenuItemClick = (pageId: string) => {
     onPageChange(pageId);
     setIsMobileMenuOpen(false);
-    setIsHoverMenuOpen(false);
   };
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && currentPage === 'billing') {
-        setIsHoverMenuOpen((prev) => !prev);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentPage]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex relative">
@@ -50,70 +40,59 @@ export default function Layout({ children, currentPage, onPageChange, onLogout }
         />
       )}
 
-      {currentPage === 'billing' && isHoverMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:block"
-          onClick={() => setIsHoverMenuOpen(false)}
-        />
-      )}
-
-      {currentPage === 'billing' && (
-        <div
-          className="fixed left-0 top-0 bottom-0 w-8 z-30 hidden lg:block"
-          onMouseEnter={() => setIsHoverMenuOpen(true)}
-        />
-      )}
-
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50
-        w-64 bg-white shadow-lg
-        transform transition-transform duration-300 ease-in-out
+        bg-white shadow-lg
+        transform transition-all duration-300 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        ${currentPage === 'billing' ? (isHoverMenuOpen ? 'lg:translate-x-0' : 'lg:-translate-x-full') : ''}
-      `}
-      onMouseLeave={() => currentPage === 'billing' && setIsHoverMenuOpen(false)}
-      >
-        <div className="p-4 lg:p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between lg:justify-center">
-            <img
-              src="/asset_2smile_struct.png"
-              alt="Smile Struck Bridal Studios"
-              className="w-40 lg:w-full h-auto"
-            />
-            <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
-            >
-              <X className="w-6 h-6 text-gray-600" />
-            </button>
+        ${showSidebar ? '' : 'lg:hidden'}
+        ${sidebarExpanded ? 'w-64' : 'w-20'}
+      `}>
+        {sidebarExpanded && (
+          <div className="p-4 lg:p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between lg:justify-center">
+              <img
+                src="/asset_2smile_struct.png"
+                alt="Smile Struck Bridal Studios"
+                className="w-40 lg:w-full h-auto"
+              />
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-6 h-6 text-gray-600" />
+              </button>
+            </div>
           </div>
-        </div>
-        <nav className="p-4 space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+        )}
+        <nav className="p-2 lg:p-4 space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)' }}>
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.id}
                 onClick={() => handleMenuItemClick(item.id)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                title={!sidebarExpanded ? item.label : undefined}
+                className={`w-full flex items-center ${sidebarExpanded ? 'space-x-3 px-4' : 'justify-center px-2'} py-3 rounded-lg transition-colors ${
                   currentPage === item.id
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                {sidebarExpanded && <span className="font-medium">{item.label}</span>}
               </button>
             );
           })}
         </nav>
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-2 lg:p-4 border-t border-gray-200">
           <button
             onClick={onLogout}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-red-600 hover:bg-red-50"
+            title={!sidebarExpanded ? 'Logout' : undefined}
+            className={`w-full flex items-center ${sidebarExpanded ? 'space-x-3 px-4' : 'justify-center px-2'} py-3 rounded-lg transition-colors text-red-600 hover:bg-red-50`}
           >
-            <LogOut className="w-5 h-5" />
-            <span className="font-medium">Logout</span>
+            <LogOut className="w-5 h-5 flex-shrink-0" />
+            {sidebarExpanded && <span className="font-medium">Logout</span>}
           </button>
         </div>
       </aside>

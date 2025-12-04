@@ -15,6 +15,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState('billing');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   useEffect(() => {
     const loggedIn = localStorage.getItem('isLoggedIn');
@@ -34,10 +35,14 @@ function App() {
     setCurrentPage('billing');
   };
 
+  const handleSidebarToggle = () => {
+    setSidebarExpanded(!sidebarExpanded);
+  };
+
   const renderPage = () => {
     switch (currentPage) {
       case 'billing':
-        return <BillingPage />;
+        return <BillingPage onSidebarToggle={handleSidebarToggle} />;
       case 'customers':
         return <CustomersPage />;
       case 'products':
@@ -72,7 +77,14 @@ function App() {
   }
 
   return (
-    <Layout currentPage={currentPage} onPageChange={setCurrentPage} onLogout={handleLogout}>
+    <Layout
+      currentPage={currentPage}
+      onPageChange={setCurrentPage}
+      onLogout={handleLogout}
+      showSidebar={currentPage === 'billing' ? true : true}
+      sidebarExpanded={currentPage === 'billing' ? sidebarExpanded : true}
+      onSidebarToggle={currentPage === 'billing' ? handleSidebarToggle : undefined}
+    >
       {renderPage()}
     </Layout>
   );
