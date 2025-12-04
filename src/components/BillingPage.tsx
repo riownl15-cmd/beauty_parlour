@@ -446,7 +446,7 @@ export default function BillingPage({ onSidebarToggle }: BillingPageProps) {
           <div className="flex items-center gap-2 mb-4">
             <User className="w-5 h-5 text-gray-700" />
             <h3 className="text-base lg:text-lg font-semibold text-gray-800">Customer Information</h3>
-            <span className="text-xs text-gray-500 ml-auto">Optional</span>
+            <span className="text-xs text-gray-500 ml-auto">.</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
