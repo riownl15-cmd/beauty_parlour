@@ -98,7 +98,7 @@ export default function ServiceForm({ service, onClose }: ServiceFormProps) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price (₹) <span className="text-red-500">*</span>
+                Price (₹) - Tax Inclusive <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -108,6 +108,7 @@ export default function ServiceForm({ service, onClose }: ServiceFormProps) {
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
+              <p className="text-xs text-gray-500 mt-1">Price includes tax</p>
             </div>
 
             <div>

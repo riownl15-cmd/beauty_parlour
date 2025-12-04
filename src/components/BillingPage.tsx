@@ -139,29 +139,38 @@ export default function BillingPage() {
   };
 
   const calculateTotals = () => {
-    const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const totalInclusive = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     let discountAmount = 0;
     if (discountType === 'percentage') {
-      discountAmount = (subtotal * parseFloat(discountValue || '0')) / 100;
+      discountAmount = (totalInclusive * parseFloat(discountValue || '0')) / 100;
     } else {
       discountAmount = parseFloat(discountValue || '0');
     }
 
-    const afterDiscount = subtotal - discountAmount;
-    const taxAmount = cart.reduce((sum, item) => {
-      const itemTotal = item.price * item.quantity;
-      return sum + (itemTotal * item.taxRate) / 100;
-    }, 0);
+    const afterDiscount = totalInclusive - discountAmount;
 
-    const total = afterDiscount + taxAmount;
+    let subtotalExcludingTax = 0;
+    let taxAmount = 0;
+
+    cart.forEach((item) => {
+      const itemTotalInclusive = item.price * item.quantity;
+      const discountRatio = afterDiscount / totalInclusive;
+      const itemAfterDiscount = itemTotalInclusive * discountRatio;
+
+      const itemBasePrice = itemAfterDiscount / (1 + item.taxRate / 100);
+      const itemTax = itemAfterDiscount - itemBasePrice;
+
+      subtotalExcludingTax += itemBasePrice;
+      taxAmount += itemTax;
+    });
 
     return {
-      subtotal,
+      subtotal: subtotalExcludingTax,
       discountAmount,
       discountPercentage: discountType === 'percentage' ? parseFloat(discountValue || '0') : 0,
       taxAmount,
-      total,
+      total: afterDiscount,
     };
   };
 
@@ -287,18 +296,24 @@ export default function BillingPage() {
 
       const invoiceId = invoiceData[0].id;
 
-      const invoiceItems = cart.map((item) => ({
-        invoice_id: invoiceId,
-        item_type: item.type,
-        product_id: item.productId || null,
-        service_id: item.serviceId || null,
-        item_name: item.name,
-        quantity: item.quantity,
-        unit_price: item.price,
-        tax_rate: item.taxRate,
-        tax_amount: (item.price * item.quantity * item.taxRate) / 100,
-        total_amount: item.price * item.quantity + (item.price * item.quantity * item.taxRate) / 100,
-      }));
+      const invoiceItems = cart.map((item) => {
+        const totalInclusive = item.price * item.quantity;
+        const basePrice = totalInclusive / (1 + item.taxRate / 100);
+        const taxAmount = totalInclusive - basePrice;
+
+        return {
+          invoice_id: invoiceId,
+          item_type: item.type,
+          product_id: item.productId || null,
+          service_id: item.serviceId || null,
+          item_name: item.name,
+          quantity: item.quantity,
+          unit_price: item.price,
+          tax_rate: item.taxRate,
+          tax_amount: taxAmount,
+          total_amount: totalInclusive,
+        };
+      });
 
       const { error: itemsError } = await supabase.from('invoice_items').insert(invoiceItems);
 
