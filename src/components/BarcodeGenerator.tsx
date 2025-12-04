@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Copy, Download, RefreshCw } from 'lucide-react';
+import JsBarcode from 'jsbarcode';
 
 type BarcodeGeneratorProps = {
   productName: string;
@@ -30,7 +31,7 @@ export default function BarcodeGenerator({
     }
 
     setBarcode(newBarcode);
-    setDisplayBarcode(generateBarcodeImage(newBarcode, barcodeType));
+    generateBarcodeImage(newBarcode, barcodeType);
   };
 
   const calculateEAN13Checksum = (code: string): string => {
@@ -53,139 +54,34 @@ export default function BarcodeGenerator({
     return checksum.toString();
   };
 
-  const generateBarcodeImage = (code: string, type: string): string => {
-    const barWidth = 3;
-    const barHeight = 100;
-    const quietZone = 50;
+  const generateBarcodeImage = (code: string, type: string): void => {
+    try {
+      const canvas = document.createElement('canvas');
 
-    const binaryString = encodeToCODE128(code);
-    const totalWidth = (binaryString.length * barWidth) + (quietZone * 2);
-    const totalHeight = barHeight + 70;
+      const formatMap: Record<string, string> = {
+        'CODE128': 'CODE128',
+        'EAN13': 'EAN13',
+        'UPC': 'UPC'
+      };
 
-    let svg = `<svg width="${totalWidth}" height="${totalHeight}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">`;
-    svg += `<rect width="${totalWidth}" height="${totalHeight}" fill="white"/>`;
+      JsBarcode(canvas, code, {
+        format: formatMap[type],
+        width: 3,
+        height: 100,
+        displayValue: true,
+        fontSize: 18,
+        fontOptions: 'bold',
+        margin: 15,
+        background: '#ffffff',
+        lineColor: '#000000'
+      });
 
-    let xPos = quietZone;
-    for (let i = 0; i < binaryString.length; i++) {
-      if (binaryString[i] === '1') {
-        svg += `<rect x="${xPos}" y="25" width="${barWidth}" height="${barHeight}" fill="black"/>`;
-      }
-      xPos += barWidth;
+      const dataUrl = canvas.toDataURL('image/png');
+      setDisplayBarcode(dataUrl);
+    } catch (error) {
+      console.error('Error generating barcode:', error);
+      alert('Failed to generate barcode. Please try again.');
     }
-
-    svg += `<text x="${totalWidth / 2}" y="${barHeight + 55}" font-size="18" font-family="monospace" text-anchor="middle" font-weight="600">${code}</text>`;
-    svg += `</svg>`;
-
-    return `data:image/svg+xml;base64,${btoa(svg)}`;
-  };
-
-  const encodeToCODE128 = (data: string): string => {
-    const CODE128_PATTERNS = [
-      '11011001100', '11001101100', '11001100110', '10010011000', '10010001100',
-      '10001001100', '10011001000', '10011000100', '10001100100', '11001001000',
-      '11001000100', '11000100100', '10110011100', '10011011100', '10011001110',
-      '10111001100', '10011101100', '10011100110', '11001110010', '11001011100',
-      '11001001110', '11011100100', '11001110100', '11101101110', '11101001100',
-      '11100101100', '11100100110', '11101100100', '11100110100', '11100110010',
-      '11011011000', '11011000110', '11000110110', '10100011000', '10001011000',
-      '10001000110', '10110001000', '10001101000', '10001100010', '11010001000',
-      '11000101000', '11000100010', '10110111000', '10110001110', '10001101110',
-      '10111011000', '10111000110', '10001110110', '11101110110', '11010001110',
-      '11000101110', '11011101000', '11011100010', '11011101110', '11101011000',
-      '11101000110', '11100010110', '11101101000', '11101100010', '11100011010',
-      '11101111010', '11001000010', '11110001010', '10100110000', '10100001100',
-      '10010110000', '10010000110', '10000101100', '10000100110', '10110010000',
-      '10110000100', '10011010000', '10011000010', '10000110100', '10000110010',
-      '11000010010', '11001010000', '11110111010', '11000010100', '10001111010',
-      '10100111100', '10010111100', '10010011110', '10111100100', '10011110100',
-      '10011110010', '11110100100', '11110010100', '11110010010', '11011011110',
-      '11011110110', '11110110110', '10101111000', '10100011110', '10001011110',
-      '10111101000', '10111100010', '11110101000', '11110100010', '10111011110',
-      '10111101110', '11101011110', '11110101110', '11010000100', '11010010000',
-      '11010011100', '1100011101011'
-    ];
-
-    const CODE128_B_CHARS = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
-
-    const START_B = 104;
-    const STOP = 106;
-
-    const isNumericOnly = /^\d+$/.test(data);
-    const isEvenLength = data.length % 2 === 0;
-
-    if (isNumericOnly && data.length >= 4 && isEvenLength) {
-      return encodeToCODE128C(data);
-    }
-
-    let encoded = CODE128_PATTERNS[START_B];
-    let checksum = START_B;
-
-    for (let i = 0; i < data.length; i++) {
-      const char = data[i];
-      const charIndex = CODE128_B_CHARS.indexOf(char);
-
-      if (charIndex === -1) {
-        console.warn(`Character "${char}" not supported in CODE128-B`);
-        continue;
-      }
-
-      const codeValue = charIndex;
-      encoded += CODE128_PATTERNS[codeValue];
-      checksum += codeValue * (i + 1);
-    }
-
-    const checksumValue = checksum % 103;
-    encoded += CODE128_PATTERNS[checksumValue];
-    encoded += CODE128_PATTERNS[STOP];
-
-    return encoded;
-  };
-
-  const encodeToCODE128C = (data: string): string => {
-    const CODE128_PATTERNS = [
-      '11011001100', '11001101100', '11001100110', '10010011000', '10010001100',
-      '10001001100', '10011001000', '10011000100', '10001100100', '11001001000',
-      '11001000100', '11000100100', '10110011100', '10011011100', '10011001110',
-      '10111001100', '10011101100', '10011100110', '11001110010', '11001011100',
-      '11001001110', '11011100100', '11001110100', '11101101110', '11101001100',
-      '11100101100', '11100100110', '11101100100', '11100110100', '11100110010',
-      '11011011000', '11011000110', '11000110110', '10100011000', '10001011000',
-      '10001000110', '10110001000', '10001101000', '10001100010', '11010001000',
-      '11000101000', '11000100010', '10110111000', '10110001110', '10001101110',
-      '10111011000', '10111000110', '10001110110', '11101110110', '11010001110',
-      '11000101110', '11011101000', '11011100010', '11011101110', '11101011000',
-      '11101000110', '11100010110', '11101101000', '11101100010', '11100011010',
-      '11101111010', '11001000010', '11110001010', '10100110000', '10100001100',
-      '10010110000', '10010000110', '10000101100', '10000100110', '10110010000',
-      '10110000100', '10011010000', '10011000010', '10000110100', '10000110010',
-      '11000010010', '11001010000', '11110111010', '11000010100', '10001111010',
-      '10100111100', '10010111100', '10010011110', '10111100100', '10011110100',
-      '10011110010', '11110100100', '11110010100', '11110010010', '11011011110',
-      '11011110110', '11110110110', '10101111000', '10100011110', '10001011110',
-      '10111101000', '10111100010', '11110101000', '11110100010', '10111011110',
-      '10111101110', '11101011110', '11110101110', '11010000100', '11010010000',
-      '11010011100', '1100011101011'
-    ];
-
-    const START_C = 105;
-    const STOP = 106;
-
-    let encoded = CODE128_PATTERNS[START_C];
-    let checksum = START_C;
-
-    for (let i = 0; i < data.length; i += 2) {
-      const pair = data.substr(i, 2);
-      const value = parseInt(pair, 10);
-
-      encoded += CODE128_PATTERNS[value];
-      checksum += value * ((i / 2) + 1);
-    }
-
-    const checksumValue = checksum % 103;
-    encoded += CODE128_PATTERNS[checksumValue];
-    encoded += CODE128_PATTERNS[STOP];
-
-    return encoded;
   };
 
   const copyToClipboard = () => {
@@ -193,36 +89,10 @@ export default function BarcodeGenerator({
     alert('Barcode copied to clipboard!');
   };
 
-  const convertSvgToPng = async (svgDataUrl: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        const scale = 3;
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext('2d', { alpha: false });
-        if (ctx) {
-          ctx.imageSmoothingEnabled = false;
-          ctx.fillStyle = 'white';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.scale(scale, scale);
-          ctx.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL('image/png', 1.0));
-        } else {
-          reject(new Error('Failed to get canvas context'));
-        }
-      };
-      img.onerror = reject;
-      img.src = svgDataUrl;
-    });
-  };
-
-  const downloadBarcode = async () => {
+  const downloadBarcode = () => {
     try {
-      const pngDataUrl = await convertSvgToPng(displayBarcode);
       const link = document.createElement('a');
-      link.href = pngDataUrl;
+      link.href = displayBarcode;
       link.download = `barcode-${barcode}.png`;
       link.click();
     } catch (error) {
