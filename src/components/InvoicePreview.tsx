@@ -257,37 +257,61 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
           </div>
         </div>
 
+        <div style="position: fixed; top: 10px; right: 10px; z-index: 9999; display: flex; gap: 10px;">
+          <button onclick="window.print()" style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold;">
+            🖨️ Print Receipt
+          </button>
+          <button onclick="window.close()" style="background: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold;">
+            ✕ Close
+          </button>
+        </div>
+        <style>
+          @media print {
+            button { display: none !important; }
+          }
+        </style>
         <script>
-          var imagesLoaded = 0;
-          var totalImages = document.images.length;
+          (function() {
+            var imagesLoaded = 0;
+            var totalImages = document.images.length;
+            var printTriggered = false;
 
-          if (totalImages === 0) {
-            setTimeout(printReceipt, 500);
-          } else {
-            for (var i = 0; i < totalImages; i++) {
-              var img = document.images[i];
-              if (img.complete) {
-                imageLoaded();
-              } else {
-                img.addEventListener('load', imageLoaded);
-                img.addEventListener('error', imageLoaded);
+            function tryPrint() {
+              if (!printTriggered) {
+                printTriggered = true;
+                setTimeout(function() {
+                  window.print();
+                }, 800);
               }
             }
-          }
 
-          function imageLoaded() {
-            imagesLoaded++;
-            if (imagesLoaded === totalImages) {
-              setTimeout(printReceipt, 500);
+            if (totalImages === 0) {
+              tryPrint();
+            } else {
+              for (var i = 0; i < totalImages; i++) {
+                var img = document.images[i];
+                if (img.complete) {
+                  imageLoaded();
+                } else {
+                  img.addEventListener('load', imageLoaded);
+                  img.addEventListener('error', imageLoaded);
+                }
+              }
             }
-          }
 
-          function printReceipt() {
-            window.print();
-            window.onafterprint = function() {
-              window.close();
-            };
-          }
+            function imageLoaded() {
+              imagesLoaded++;
+              if (imagesLoaded === totalImages) {
+                tryPrint();
+              }
+            }
+
+            window.addEventListener('load', function() {
+              if (!printTriggered && imagesLoaded === totalImages) {
+                tryPrint();
+              }
+            });
+          })();
         </script>
       </body>
       </html>

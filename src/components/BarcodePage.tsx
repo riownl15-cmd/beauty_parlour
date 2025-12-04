@@ -207,38 +207,62 @@ export default function BarcodePage() {
           </div>
           <div class="price">₹${product.sale_price.toFixed(2)}</div>
         </div>
-        <script>
-          var allImages = document.images;
-          var imagesLoaded = 0;
-          var totalImages = allImages.length;
-
-          function printLabel() {
-            window.print();
-            window.onafterprint = function() {
-              window.close();
-            };
+        <div style="position: fixed; top: 5px; right: 5px; z-index: 9999; display: flex; gap: 5px;">
+          <button onclick="window.print()" style="background: #4CAF50; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">
+            🖨️ Print
+          </button>
+          <button onclick="window.close()" style="background: #f44336; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">
+            ✕ Close
+          </button>
+        </div>
+        <style>
+          @media print {
+            button { display: none !important; }
           }
+        </style>
+        <script>
+          (function() {
+            var allImages = document.images;
+            var imagesLoaded = 0;
+            var totalImages = allImages.length;
+            var printTriggered = false;
 
-          if (totalImages === 0) {
-            setTimeout(printLabel, 500);
-          } else {
-            for (var i = 0; i < totalImages; i++) {
-              var img = allImages[i];
-              if (img.complete) {
-                imageLoaded();
-              } else {
-                img.addEventListener('load', imageLoaded);
-                img.addEventListener('error', imageLoaded);
+            function tryPrint() {
+              if (!printTriggered) {
+                printTriggered = true;
+                setTimeout(function() {
+                  window.print();
+                }, 800);
               }
             }
-          }
 
-          function imageLoaded() {
-            imagesLoaded++;
-            if (imagesLoaded === totalImages) {
-              setTimeout(printLabel, 500);
+            if (totalImages === 0) {
+              tryPrint();
+            } else {
+              for (var i = 0; i < totalImages; i++) {
+                var img = allImages[i];
+                if (img.complete) {
+                  imageLoaded();
+                } else {
+                  img.addEventListener('load', imageLoaded);
+                  img.addEventListener('error', imageLoaded);
+                }
+              }
             }
-          }
+
+            function imageLoaded() {
+              imagesLoaded++;
+              if (imagesLoaded === totalImages) {
+                tryPrint();
+              }
+            }
+
+            window.addEventListener('load', function() {
+              if (!printTriggered && imagesLoaded === totalImages) {
+                tryPrint();
+              }
+            });
+          })();
         </script>
       </body>
       </html>
