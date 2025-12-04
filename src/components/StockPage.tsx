@@ -1,17 +1,26 @@
 import { useState, useEffect } from 'react';
 import { supabase, type Product, type StockMovement } from '../lib/supabase';
-import { Plus, Package, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
+import { Plus, Package, TrendingUp, TrendingDown, Calendar, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import StockEntryForm from './StockEntryForm';
 
 export default function StockPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [movements, setMovements] = useState<StockMovement[]>([]);
+  const [filteredMovements, setFilteredMovements] = useState<StockMovement[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [dateFrom, setDateFrom] = useState(new Date().toISOString().split('T')[0]);
+  const [dateTo, setDateTo] = useState(new Date().toISOString().split('T')[0]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 100;
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    filterMovements();
+  }, [movements, dateFrom, dateTo]);
 
   const loadData = async () => {
     try {
@@ -20,8 +29,7 @@ export default function StockPage() {
         supabase
           .from('stock_movements')
           .select('*')
-          .order('created_at', { ascending: false })
-          .limit(50),
+          .order('created_at', { ascending: false }),
       ]);
 
       if (productsResult.error) throw productsResult.error;
@@ -34,6 +42,38 @@ export default function StockPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const filterMovements = () => {
+    const fromDate = new Date(dateFrom).setHours(0, 0, 0, 0);
+    const toDate = new Date(dateTo).setHours(23, 59, 59, 999);
+
+    const filtered = movements.filter((movement) => {
+      const movementDate = new Date(movement.created_at).getTime();
+      return movementDate >= fromDate && movementDate <= toDate;
+    });
+
+    setFilteredMovements(filtered);
+    setCurrentPage(1);
+  };
+
+  const exportToCSV = () => {
+    const headers = ['Date & Time', 'Product', 'Type', 'Quantity', 'Notes'];
+    const data = filteredMovements.map((movement) => [
+      formatDate(movement.created_at),
+      getProductName(movement.product_id),
+      movement.movement_type,
+      movement.quantity.toString(),
+      movement.notes || '-',
+    ]);
+
+    const csv = [headers, ...data].map((row) => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stock-movements-${dateFrom}-${dateTo}.csv`;
+    a.click();
   };
 
   const handleFormClose = () => {
@@ -55,6 +95,13 @@ export default function StockPage() {
       minute: '2-digit',
     });
   };
+
+  const paginatedMovements = filteredMovements.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
+  const totalPages = Math.ceil(filteredMovements.length / rowsPerPage);
 
   if (loading) {
     return <div className="text-center py-12">Loading...</div>;
@@ -144,7 +191,37 @@ export default function StockPage() {
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="p-4 lg:p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800">Recent Stock Movements</h3>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">Recent Stock Movements</h3>
+            <button
+              onClick={exportToCSV}
+              className="flex items-center justify-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors active:scale-95 text-sm"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export CSV</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -169,15 +246,15 @@ export default function StockPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {movements.length === 0 ? (
+              {paginatedMovements.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                     <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                    <p>No stock movements yet</p>
+                    <p>No stock movements found</p>
                   </td>
                 </tr>
               ) : (
-                movements.map((movement) => (
+                paginatedMovements.map((movement) => (
                   <tr key={movement.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm text-gray-900">
                       {formatDate(movement.created_at)}
@@ -215,6 +292,35 @@ export default function StockPage() {
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              Showing {((currentPage - 1) * rowsPerPage) + 1} to {Math.min(currentPage * rowsPerPage, filteredMovements.length)} of {filteredMovements.length} movements
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Previous page"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="text-sm font-medium text-gray-700">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Next page"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showForm && <StockEntryForm products={products} onClose={handleFormClose} />}

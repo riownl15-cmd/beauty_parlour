@@ -86,15 +86,17 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-weight: bold;
           }
           body {
             width: 80mm;
             margin: 0;
-            padding: 4mm;
-            font-family: monospace;
-            font-size: 10px;
-            line-height: 1.3;
+            padding: 5mm;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.5;
             background: white;
+            font-weight: bold;
           }
           .receipt {
             width: 100%;
@@ -102,45 +104,81 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
           .center {
             text-align: center;
           }
-          .bold {
-            font-weight: bold;
+          .logo {
+            width: 50mm;
+            height: auto;
+            margin: 0 auto 8px;
+            display: block;
           }
           .separator {
-            border-top: 1px dashed #666;
-            margin: 4px 0;
+            border-top: 2px dashed #000;
+            margin: 8px 0;
           }
           .separator-thick {
-            border-top: 2px solid #000;
-            margin: 4px 0;
+            border-top: 3px solid #000;
+            margin: 8px 0;
           }
           .flex {
             display: flex;
             justify-content: space-between;
-            margin: 2px 0;
+            margin: 4px 0;
+            font-weight: bold;
           }
           .item {
-            margin-bottom: 6px;
+            margin-bottom: 10px;
+            padding: 4px 0;
+          }
+          .item-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 3px;
+          }
+          .item-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            padding-left: 4px;
+            margin-top: 2px;
           }
           .uppercase {
             text-transform: uppercase;
           }
-          .gray {
-            color: #666;
-          }
           h1 {
-            font-size: 16px;
-            margin-bottom: 4px;
+            font-size: 18px;
+            margin: 6px 0;
+            font-weight: bold;
+          }
+          h2 {
+            font-size: 14px;
+            margin: 6px 0;
+            font-weight: bold;
+          }
+          .total-section {
+            margin-top: 10px;
           }
           .total {
-            font-size: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 4px 0;
+          }
+          p {
+            margin: 3px 0;
             font-weight: bold;
           }
         </style>
       </head>
       <body>
         <div class="receipt">
+          ${settings.store_logo ? `
+            <div class="center">
+              <img src="${settings.store_logo}" class="logo" alt="Logo" />
+            </div>
+          ` : ''}
+
           <div class="center">
-            <h1 class="bold">${settings.store_name}</h1>
+            <h1>${settings.store_name.toUpperCase()}</h1>
             ${settings.store_address ? `<p>${settings.store_address}</p>` : ''}
             ${settings.store_phone ? `<p>Tel: ${settings.store_phone}</p>` : ''}
           </div>
@@ -148,7 +186,7 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
           <div class="separator"></div>
 
           <div class="center">
-            <p class="bold">INVOICE</p>
+            <h2>INVOICE</h2>
             <p>#${invoice.invoice_number}</p>
             <p>${formatDate(invoice.created_at)}</p>
           </div>
@@ -156,8 +194,8 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
           ${invoice.customer_name || invoice.customer_phone ? `
             <div class="separator"></div>
             <div>
-              ${invoice.customer_name ? `<p><strong>Customer:</strong> ${invoice.customer_name}</p>` : ''}
-              ${invoice.customer_phone ? `<p><strong>Phone:</strong> ${invoice.customer_phone}</p>` : ''}
+              ${invoice.customer_name ? `<p>CUSTOMER: ${invoice.customer_name}</p>` : ''}
+              ${invoice.customer_phone ? `<p>PHONE: ${invoice.customer_phone}</p>` : ''}
             </div>
           ` : ''}
 
@@ -166,12 +204,14 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
           <div>
             ${items.map(item => `
               <div class="item">
-                <div class="flex bold">
-                  <span>${item.item_name}</span>
+                <div class="item-header">
+                  <span>${item.item_name.toUpperCase()}</span>
                   <span>₹${item.total_amount.toFixed(2)}</span>
                 </div>
-                <div class="gray" style="padding-left: 8px;">
-                  <span>${item.quantity} x ₹${item.unit_price.toFixed(2)} (${item.tax_rate}% tax)</span>
+                <div class="item-details">
+                  <span>QTY: ${item.quantity}</span>
+                  <span>@ ₹${item.unit_price.toFixed(2)}</span>
+                  <span>TAX: ${item.tax_rate}%</span>
                 </div>
               </div>
             `).join('')}
@@ -179,21 +219,21 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
 
           <div class="separator"></div>
 
-          <div>
+          <div class="total-section">
             <div class="flex">
-              <span>Subtotal:</span>
+              <span>SUBTOTAL:</span>
               <span>₹${invoice.subtotal.toFixed(2)}</span>
             </div>
 
             ${invoice.discount_amount > 0 ? `
               <div class="flex">
-                <span>Discount${invoice.discount_percentage > 0 ? ` (${invoice.discount_percentage}%)` : ''}:</span>
+                <span>DISCOUNT${invoice.discount_percentage > 0 ? ` (${invoice.discount_percentage}%)` : ''}:</span>
                 <span>-₹${invoice.discount_amount.toFixed(2)}</span>
               </div>
             ` : ''}
 
             <div class="flex">
-              <span>Tax:</span>
+              <span>TAX:</span>
               <span>₹${invoice.tax_amount.toFixed(2)}</span>
             </div>
 
@@ -208,15 +248,15 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
           <div class="separator"></div>
 
           <div class="center">
-            <p><strong>Payment Method:</strong></p>
-            <p class="uppercase">${invoice.payment_method}</p>
+            <p>PAYMENT METHOD:</p>
+            <h2>${invoice.payment_method.toUpperCase()}</h2>
           </div>
 
           <div class="separator"></div>
 
           <div class="center">
-            <p class="bold">Thank you for your visit!</p>
-            <p>Please visit again</p>
+            <p>THANK YOU FOR YOUR VISIT!</p>
+            <p>PLEASE VISIT AGAIN</p>
           </div>
         </div>
 
@@ -281,78 +321,90 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
           </div>
 
           <div className="p-4 bg-gray-50">
-            <div className="thermal-receipt bg-white mx-auto" style={{ width: '76mm', padding: '4mm', fontFamily: 'monospace' }}>
+            <div className="thermal-receipt bg-white mx-auto" style={{ width: '76mm', padding: '5mm', fontFamily: 'monospace' }}>
+              {settings.store_logo && (
+                <div className="text-center mb-3">
+                  <img
+                    src={settings.store_logo}
+                    alt="Store Logo"
+                    className="w-32 h-auto mx-auto"
+                  />
+                </div>
+              )}
+
               <div className="text-center mb-3">
-                <h1 className="text-xl font-bold mb-1">{settings.store_name}</h1>
+                <h1 className="text-xl font-bold mb-2">{settings.store_name.toUpperCase()}</h1>
                 {settings.store_address && (
-                  <p className="text-xs mb-1">{settings.store_address}</p>
+                  <p className="text-xs font-bold mb-1">{settings.store_address}</p>
                 )}
                 {settings.store_phone && (
-                  <p className="text-xs mb-1">Tel: {settings.store_phone}</p>
+                  <p className="text-xs font-bold mb-1">Tel: {settings.store_phone}</p>
                 )}
               </div>
 
-              <div className="border-t-2 border-dashed border-gray-400 my-2"></div>
+              <div className="border-t-2 border-dashed border-gray-600 my-3"></div>
 
-              <div className="text-center text-sm mb-2">
-                <p className="font-bold">INVOICE</p>
-                <p className="text-xs">#{invoice.invoice_number}</p>
-                <p className="text-xs">{formatDate(invoice.created_at)}</p>
+              <div className="text-center text-sm mb-3">
+                <p className="font-bold text-base">INVOICE</p>
+                <p className="text-sm font-bold">#{invoice.invoice_number}</p>
+                <p className="text-xs font-bold">{formatDate(invoice.created_at)}</p>
               </div>
 
               {(invoice.customer_name || invoice.customer_phone) && (
                 <>
-                  <div className="border-t border-dashed border-gray-400 my-2"></div>
-                  <div className="text-xs mb-2">
+                  <div className="border-t-2 border-dashed border-gray-600 my-3"></div>
+                  <div className="text-xs mb-3">
                     {invoice.customer_name && (
-                      <p><strong>Customer:</strong> {invoice.customer_name}</p>
+                      <p className="font-bold">CUSTOMER: {invoice.customer_name}</p>
                     )}
                     {invoice.customer_phone && (
-                      <p><strong>Phone:</strong> {invoice.customer_phone}</p>
+                      <p className="font-bold">PHONE: {invoice.customer_phone}</p>
                     )}
                   </div>
                 </>
               )}
 
-              <div className="border-t-2 border-dashed border-gray-400 my-2"></div>
+              <div className="border-t-2 border-dashed border-gray-600 my-3"></div>
 
-              <div className="text-xs">
-                {items.map((item, index) => (
-                  <div key={item.id} className="mb-2">
-                    <div className="flex justify-between font-semibold">
-                      <span>{item.item_name}</span>
-                      <span>₹{item.total_amount.toFixed(2)}</span>
+              <div className="text-xs space-y-3">
+                {items.map((item) => (
+                  <div key={item.id} className="mb-3">
+                    <div className="flex justify-between font-bold text-sm">
+                      <span className="flex-1">{item.item_name.toUpperCase()}</span>
+                      <span className="ml-2">₹{item.total_amount.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-gray-600 ml-2">
-                      <span>{item.quantity} x ₹{item.unit_price.toFixed(2)} ({item.tax_rate}% tax)</span>
+                    <div className="flex justify-between text-xs font-bold mt-1 ml-2">
+                      <span>QTY: {item.quantity}</span>
+                      <span>@ ₹{item.unit_price.toFixed(2)}</span>
+                      <span>TAX: {item.tax_rate}%</span>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t-2 border-dashed border-gray-400 my-2"></div>
+              <div className="border-t-2 border-dashed border-gray-600 my-3"></div>
 
-              <div className="text-xs space-y-1">
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
+              <div className="text-xs space-y-2">
+                <div className="flex justify-between font-bold">
+                  <span>SUBTOTAL:</span>
                   <span>₹{invoice.subtotal.toFixed(2)}</span>
                 </div>
 
                 {invoice.discount_amount > 0 && (
-                  <div className="flex justify-between">
+                  <div className="flex justify-between font-bold">
                     <span>
-                      Discount{invoice.discount_percentage > 0 && ` (${invoice.discount_percentage}%)`}:
+                      DISCOUNT{invoice.discount_percentage > 0 && ` (${invoice.discount_percentage}%)`}:
                     </span>
                     <span>-₹{invoice.discount_amount.toFixed(2)}</span>
                   </div>
                 )}
 
-                <div className="flex justify-between">
-                  <span>Tax:</span>
+                <div className="flex justify-between font-bold">
+                  <span>TAX:</span>
                   <span>₹{invoice.tax_amount.toFixed(2)}</span>
                 </div>
 
-                <div className="border-t-2 border-gray-800 my-1 pt-1"></div>
+                <div className="border-t-2 border-gray-800 my-2 pt-2"></div>
 
                 <div className="flex justify-between font-bold text-base">
                   <span>TOTAL:</span>
@@ -360,18 +412,18 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
                 </div>
               </div>
 
-              <div className="border-t-2 border-dashed border-gray-400 my-2"></div>
+              <div className="border-t-2 border-dashed border-gray-600 my-3"></div>
 
-              <div className="text-xs text-center mb-2">
-                <p><strong>Payment Method:</strong></p>
-                <p className="uppercase">{invoice.payment_method}</p>
+              <div className="text-xs text-center mb-3">
+                <p className="font-bold">PAYMENT METHOD:</p>
+                <p className="uppercase font-bold text-base mt-1">{invoice.payment_method}</p>
               </div>
 
-              <div className="border-t border-dashed border-gray-400 my-2"></div>
+              <div className="border-t-2 border-dashed border-gray-600 my-3"></div>
 
               <div className="text-center text-xs">
-                <p className="font-semibold">Thank you for your visit!</p>
-                <p>Please visit again</p>
+                <p className="font-bold">THANK YOU FOR YOUR VISIT!</p>
+                <p className="font-bold">PLEASE VISIT AGAIN</p>
               </div>
             </div>
           </div>
