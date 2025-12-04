@@ -120,10 +120,18 @@ export default function BarcodePage() {
   const printLabel = (product: Product) => {
     if (!product.barcode) return;
 
-    const printWindow = window.open('', '', 'width=400,height=300');
-    if (!printWindow) return;
-
     const barcodeImage = generateBarcodeImage(product.barcode);
+
+    if (!barcodeImage) {
+      alert('Failed to generate barcode image');
+      return;
+    }
+
+    const printWindow = window.open('', '', 'width=400,height=300');
+    if (!printWindow) {
+      alert('Failed to open print window. Please check your popup settings.');
+      return;
+    }
 
     const labelHTML = `
       <!DOCTYPE html>
@@ -195,21 +203,33 @@ export default function BarcodePage() {
           <div class="store-name">${storeName}</div>
           <div class="product-name">${product.name}</div>
           <div class="barcode-container">
-            <img src="${barcodeImage}" alt="Barcode" />
+            <img src="${barcodeImage}" alt="Barcode" id="barcodeImg" />
           </div>
           <div class="price">
             <span class="price-label">MRP: </span>₹${product.sale_price.toFixed(2)}
           </div>
         </div>
         <script>
-          window.onload = function() {
-            setTimeout(function() {
-              window.print();
-              window.onafterprint = function() {
-                window.close();
-              };
-            }, 500);
-          };
+          var img = document.getElementById('barcodeImg');
+
+          function printLabel() {
+            window.print();
+            window.onafterprint = function() {
+              window.close();
+            };
+          }
+
+          if (img.complete) {
+            setTimeout(printLabel, 500);
+          } else {
+            img.addEventListener('load', function() {
+              setTimeout(printLabel, 500);
+            });
+            img.addEventListener('error', function() {
+              console.error('Failed to load barcode image');
+              setTimeout(printLabel, 500);
+            });
+          }
         </script>
       </body>
       </html>

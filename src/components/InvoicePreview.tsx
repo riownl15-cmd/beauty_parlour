@@ -70,13 +70,15 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
     const printWindow = window.open('', '', 'width=800,height=600');
     if (!printWindow) return;
 
+    const logoUrl = window.location.origin + '/asset_2smile_struct.png';
+
     const receiptHTML = `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Receipt - ${invoice.invoice_number}</title>
+        <title>Receipt - ${invoice?.invoice_number || 'Invoice'}</title>
         <style>
           @page {
             size: 80mm auto;
@@ -172,7 +174,7 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
       <body>
         <div class="receipt">
           <div class="center">
-            <img src="/asset_2smile_struct.png" class="logo" alt="Logo" />
+            <img src="${logoUrl}" class="logo" alt="Logo" onerror="this.style.display='none'" />
           </div>
 
           <div class="center">
@@ -185,11 +187,11 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
 
           <div class="center">
             <h2>INVOICE</h2>
-            <p>#${invoice.invoice_number}</p>
-            <p>${formatDate(invoice.created_at)}</p>
+            <p>#${invoice?.invoice_number || ''}</p>
+            <p>${invoice?.created_at ? formatDate(invoice.created_at) : ''}</p>
           </div>
 
-          ${invoice.customer_name || invoice.customer_phone ? `
+          ${invoice?.customer_name || invoice?.customer_phone ? `
             <div class="separator"></div>
             <div>
               ${invoice.customer_name ? `<p>CUSTOMER: ${invoice.customer_name}</p>` : ''}
@@ -220,10 +222,10 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
           <div class="total-section">
             <div class="flex">
               <span>SUBTOTAL:</span>
-              <span>₹${invoice.subtotal.toFixed(2)}</span>
+              <span>₹${invoice?.subtotal?.toFixed(2) || '0.00'}</span>
             </div>
 
-            ${invoice.discount_amount > 0 ? `
+            ${invoice?.discount_amount > 0 ? `
               <div class="flex">
                 <span>DISCOUNT${invoice.discount_percentage > 0 ? ` (${invoice.discount_percentage}%)` : ''}:</span>
                 <span>-₹${invoice.discount_amount.toFixed(2)}</span>
@@ -232,14 +234,14 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
 
             <div class="flex">
               <span>TAX:</span>
-              <span>₹${invoice.tax_amount.toFixed(2)}</span>
+              <span>₹${invoice?.tax_amount?.toFixed(2) || '0.00'}</span>
             </div>
 
             <div class="separator-thick"></div>
 
             <div class="flex total">
               <span>TOTAL:</span>
-              <span>₹${invoice.total_amount.toFixed(2)}</span>
+              <span>₹${invoice?.total_amount?.toFixed(2) || '0.00'}</span>
             </div>
           </div>
 
@@ -247,7 +249,7 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
 
           <div class="center">
             <p>PAYMENT METHOD:</p>
-            <h2>${invoice.payment_method.toUpperCase()}</h2>
+            <h2>${invoice?.payment_method?.toUpperCase() || 'CASH'}</h2>
           </div>
 
           <div class="separator"></div>
@@ -259,14 +261,36 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
         </div>
 
         <script>
-          window.onload = function() {
-            setTimeout(function() {
-              window.print();
-              window.onafterprint = function() {
-                window.close();
-              };
-            }, 250);
-          };
+          var imagesLoaded = 0;
+          var totalImages = document.images.length;
+
+          if (totalImages === 0) {
+            setTimeout(printReceipt, 500);
+          } else {
+            for (var i = 0; i < totalImages; i++) {
+              var img = document.images[i];
+              if (img.complete) {
+                imageLoaded();
+              } else {
+                img.addEventListener('load', imageLoaded);
+                img.addEventListener('error', imageLoaded);
+              }
+            }
+          }
+
+          function imageLoaded() {
+            imagesLoaded++;
+            if (imagesLoaded === totalImages) {
+              setTimeout(printReceipt, 500);
+            }
+          }
+
+          function printReceipt() {
+            window.print();
+            window.onafterprint = function() {
+              window.close();
+            };
+          }
         </script>
       </body>
       </html>
