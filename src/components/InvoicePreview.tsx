@@ -97,27 +97,28 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
               size: 80mm auto;
               margin: 0;
             }
-            body * {
-              visibility: hidden;
-            }
-            .thermal-receipt,
-            .thermal-receipt * {
-              visibility: visible;
-            }
-            .thermal-receipt {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 76mm;
+            html, body {
               margin: 0;
-              padding: 4mm;
-              font-size: 10pt;
-              background: white;
-              box-shadow: none;
+              padding: 0;
+              width: 80mm;
             }
             .no-print {
               display: none !important;
             }
+            .print-only {
+              display: block !important;
+            }
+            .thermal-receipt {
+              width: 76mm !important;
+              margin: 0 !important;
+              padding: 4mm !important;
+              font-size: 10pt !important;
+              background: white !important;
+              box-shadow: none !important;
+            }
+          }
+          .print-only {
+            display: none;
           }
         `}
       </style>
@@ -237,6 +238,102 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
                 <p>Please visit again</p>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="print-only">
+        <div className="thermal-receipt bg-white" style={{ width: '76mm', padding: '4mm', fontFamily: 'monospace' }}>
+          <div className="text-center mb-3">
+            <h1 className="text-xl font-bold mb-1">{settings.store_name}</h1>
+            {settings.store_address && (
+              <p className="text-xs mb-1">{settings.store_address}</p>
+            )}
+            {settings.store_phone && (
+              <p className="text-xs mb-1">Tel: {settings.store_phone}</p>
+            )}
+          </div>
+
+          <div className="border-t-2 border-dashed border-gray-400 my-2"></div>
+
+          <div className="text-center text-sm mb-2">
+            <p className="font-bold">INVOICE</p>
+            <p className="text-xs">#{invoice.invoice_number}</p>
+            <p className="text-xs">{formatDate(invoice.created_at)}</p>
+          </div>
+
+          {(invoice.customer_name || invoice.customer_phone) && (
+            <>
+              <div className="border-t border-dashed border-gray-400 my-2"></div>
+              <div className="text-xs mb-2">
+                {invoice.customer_name && (
+                  <p><strong>Customer:</strong> {invoice.customer_name}</p>
+                )}
+                {invoice.customer_phone && (
+                  <p><strong>Phone:</strong> {invoice.customer_phone}</p>
+                )}
+              </div>
+            </>
+          )}
+
+          <div className="border-t-2 border-dashed border-gray-400 my-2"></div>
+
+          <div className="text-xs">
+            {items.map((item) => (
+              <div key={item.id} className="mb-2">
+                <div className="flex justify-between font-semibold">
+                  <span>{item.item_name}</span>
+                  <span>₹{item.total_amount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600 ml-2">
+                  <span>{item.quantity} x ₹{item.unit_price.toFixed(2)} ({item.tax_rate}% tax)</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="border-t-2 border-dashed border-gray-400 my-2"></div>
+
+          <div className="text-xs space-y-1">
+            <div className="flex justify-between">
+              <span>Subtotal:</span>
+              <span>₹{invoice.subtotal.toFixed(2)}</span>
+            </div>
+
+            {invoice.discount_amount > 0 && (
+              <div className="flex justify-between">
+                <span>
+                  Discount{invoice.discount_percentage > 0 && ` (${invoice.discount_percentage}%)`}:
+                </span>
+                <span>-₹{invoice.discount_amount.toFixed(2)}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between">
+              <span>Tax:</span>
+              <span>₹{invoice.tax_amount.toFixed(2)}</span>
+            </div>
+
+            <div className="border-t-2 border-gray-800 my-1 pt-1"></div>
+
+            <div className="flex justify-between font-bold text-base">
+              <span>TOTAL:</span>
+              <span>₹{invoice.total_amount.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div className="border-t-2 border-dashed border-gray-400 my-2"></div>
+
+          <div className="text-xs text-center mb-2">
+            <p><strong>Payment Method:</strong></p>
+            <p className="uppercase">{invoice.payment_method}</p>
+          </div>
+
+          <div className="border-t border-dashed border-gray-400 my-2"></div>
+
+          <div className="text-center text-xs">
+            <p className="font-semibold">Thank you for your visit!</p>
+            <p>Please visit again</p>
           </div>
         </div>
       </div>
