@@ -13,6 +13,9 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Wallet,
+  CreditCard,
+  Smartphone,
 } from 'lucide-react';
 import InvoicePreview from './InvoicePreview';
 
@@ -21,6 +24,9 @@ type SalesData = {
   totalOrders: number;
   totalProfit: number;
   totalTax: number;
+  cashPayments: number;
+  cardPayments: number;
+  upiPayments: number;
 };
 
 type TopProduct = {
@@ -57,6 +63,9 @@ export default function ReportsPage() {
     totalOrders: 0,
     totalProfit: 0,
     totalTax: 0,
+    cashPayments: 0,
+    cardPayments: 0,
+    upiPayments: 0,
   });
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [lowStockProducts, setLowStockProducts] = useState<LowStockProduct[]>([]);
@@ -101,6 +110,13 @@ export default function ReportsPage() {
       const totalSales = invoices?.reduce((sum, inv) => sum + inv.total_amount, 0) || 0;
       const totalOrders = invoices?.length || 0;
       const totalTax = invoices?.reduce((sum, inv) => sum + inv.tax_amount, 0) || 0;
+
+      const cashPayments = invoices?.filter(inv => inv.payment_method === 'cash')
+        .reduce((sum, inv) => sum + inv.total_amount, 0) || 0;
+      const cardPayments = invoices?.filter(inv => inv.payment_method === 'card')
+        .reduce((sum, inv) => sum + inv.total_amount, 0) || 0;
+      const upiPayments = invoices?.filter(inv => inv.payment_method === 'upi')
+        .reduce((sum, inv) => sum + inv.total_amount, 0) || 0;
 
       const { data: items, error: itemsError } = await supabase
         .from('invoice_items')
@@ -155,6 +171,9 @@ export default function ReportsPage() {
         totalOrders,
         totalProfit,
         totalTax,
+        cashPayments,
+        cardPayments,
+        upiPayments,
       });
     } catch (error) {
       console.error('Error loading reports:', error);
@@ -329,6 +348,38 @@ export default function ReportsPage() {
           </div>
           <p className="text-gray-600 text-sm mb-1">Total Tax</p>
           <p className="text-3xl font-bold text-gray-800">₹{salesData.totalTax.toFixed(2)}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-green-100 rounded-lg">
+              <Wallet className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+          <p className="text-gray-600 text-sm mb-1">Cash Payments</p>
+          <p className="text-3xl font-bold text-gray-800">₹{salesData.cashPayments.toFixed(2)}</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-blue-100 rounded-lg">
+              <CreditCard className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+          <p className="text-gray-600 text-sm mb-1">Card Payments</p>
+          <p className="text-3xl font-bold text-gray-800">₹{salesData.cardPayments.toFixed(2)}</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-indigo-100 rounded-lg">
+              <Smartphone className="w-6 h-6 text-indigo-600" />
+            </div>
+          </div>
+          <p className="text-gray-600 text-sm mb-1">UPI Payments</p>
+          <p className="text-3xl font-bold text-gray-800">₹{salesData.upiPayments.toFixed(2)}</p>
         </div>
       </div>
 
