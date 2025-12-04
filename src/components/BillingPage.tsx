@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase, type Product, type Service, type Customer } from '../lib/supabase';
 import {
   ShoppingCart,
@@ -44,10 +44,17 @@ export default function BillingPage() {
   const [processing, setProcessing] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [lastInvoiceId, setLastInvoiceId] = useState<string | null>(null);
+  const barcodeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (!loading && barcodeInputRef.current) {
+      barcodeInputRef.current.focus();
+    }
+  }, [loading]);
 
   const loadData = async () => {
     try {
@@ -181,8 +188,10 @@ export default function BillingPage() {
     if (product) {
       addToCart(product, 'product');
       setBarcodeInput('');
+      setTimeout(() => barcodeInputRef.current?.focus(), 0);
     } else {
       alert('Product not found with this barcode');
+      setTimeout(() => barcodeInputRef.current?.focus(), 0);
     }
   };
 
@@ -405,6 +414,7 @@ export default function BillingPage() {
             <div className="flex-1 relative">
               <Scan className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
+                ref={barcodeInputRef}
                 type="text"
                 placeholder="Scan or enter barcode..."
                 value={barcodeInput}
