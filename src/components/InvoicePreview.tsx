@@ -66,8 +66,21 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
     }
   };
 
-  const handlePrint = () => {
-    const logoUrl = window.location.origin + '/asset_2smile_struct.png';
+  const handlePrint = async () => {
+    let logoBase64 = '';
+
+    try {
+      const logoPath = '/asset_2smile_struct.png';
+      const response = await fetch(logoPath);
+      const blob = await response.blob();
+      logoBase64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('Error loading logo:', error);
+    }
 
     const receiptHTML = `
       <!DOCTYPE html>
@@ -171,7 +184,7 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
       <body>
         <div class="receipt">
           <div class="center">
-            <img src="${logoUrl}" class="logo" alt="Logo" onerror="this.style.display='none'" />
+            ${logoBase64 ? `<img src="${logoBase64}" class="logo" alt="Logo" />` : ''}
           </div>
 
           <div class="center">

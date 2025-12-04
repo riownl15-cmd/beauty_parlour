@@ -117,7 +117,7 @@ export default function BarcodePage() {
     }
   };
 
-  const printLabel = (product: Product) => {
+  const printLabel = async (product: Product) => {
     if (!product.barcode) return;
 
     const barcodeImage = generateBarcodeImage(product.barcode);
@@ -127,7 +127,19 @@ export default function BarcodePage() {
       return;
     }
 
-    const logoUrl = window.location.origin + '/asset_2smile_struct.png';
+    let logoBase64 = '';
+    try {
+      const logoPath = '/asset_2smile_struct.png';
+      const response = await fetch(logoPath);
+      const blob = await response.blob();
+      logoBase64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('Error loading logo:', error);
+    }
 
     const labelHTML = `
       <!DOCTYPE html>
@@ -200,7 +212,7 @@ export default function BarcodePage() {
       </head>
       <body>
         <div class="label">
-          <img src="${logoUrl}" class="logo" alt="Logo" onerror="this.style.display='none'" />
+          ${logoBase64 ? `<img src="${logoBase64}" class="logo" alt="Logo" />` : ''}
           <div class="product-name">${product.name}</div>
           <div class="barcode-container">
             <img src="${barcodeImage}" alt="Barcode" id="barcodeImg" />
