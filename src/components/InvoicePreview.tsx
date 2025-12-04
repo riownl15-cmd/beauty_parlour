@@ -98,16 +98,17 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-weight: bold;
           }
           body {
             width: 72mm;
             margin: 0;
             padding: 2mm;
-            font-family: 'Courier New', monospace;
+            font-family: Arial, 'Helvetica Neue', sans-serif;
             font-size: 13px;
             line-height: 1.3;
             background: white;
-            font-weight: normal;
+            font-weight: bold;
           }
           .receipt {
             width: 100%;
