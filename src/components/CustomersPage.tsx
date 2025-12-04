@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, type Customer, type Invoice } from '../lib/supabase';
-import { Users, Phone, Mail, MapPin, Plus, X, History, DollarSign, Edit2, Trash2 } from 'lucide-react';
+import { Users, Phone, Mail, MapPin, Plus, X, History, DollarSign, Edit2, Trash2, Search, Download } from 'lucide-react';
 
 type CustomerWithStats = Customer & {
   total_purchases: number;
@@ -15,6 +15,7 @@ export default function CustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [customerInvoices, setCustomerInvoices] = useState<Invoice[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -142,6 +143,41 @@ export default function CustomersPage() {
     }
   };
 
+  const exportToCSV = () => {
+    const csvHeaders = ['Name', 'Phone', 'Email', 'Address', 'Total Purchases', 'Total Spent', 'Notes'];
+    const csvRows = filteredCustomers.map(customer => [
+      customer.name,
+      customer.phone,
+      customer.email || '',
+      customer.address || '',
+      customer.total_purchases.toString(),
+      customer.total_spent.toFixed(2),
+      customer.notes || ''
+    ]);
+
+    const csvContent = [
+      csvHeaders.join(','),
+      ...csvRows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `customers_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const filteredCustomers = customers.filter(customer =>
+    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (customer.address && customer.address.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -152,26 +188,49 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-4 lg:space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Customers</h1>
-          <p className="text-gray-600 mt-1">Manage your customer database and view purchase history</p>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Customers</h1>
+            <p className="text-gray-600 mt-1">Manage your customer database and view purchase history</p>
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button
+              onClick={exportToCSV}
+              disabled={filteredCustomers.length === 0}
+              className="flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors active:scale-98 text-base disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-initial"
+            >
+              <Download className="w-5 h-5" />
+              Export CSV
+            </button>
+            <button
+              onClick={() => {
+                setSelectedCustomer(null);
+                setFormData({ name: '', phone: '', email: '', address: '', notes: '' });
+                setShowForm(true);
+              }}
+              className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors active:scale-98 text-base flex-1 sm:flex-initial"
+            >
+              <Plus className="w-5 h-5" />
+              Add Customer
+            </button>
+          </div>
         </div>
-        <button
-          onClick={() => {
-            setSelectedCustomer(null);
-            setFormData({ name: '', phone: '', email: '', address: '', notes: '' });
-            setShowForm(true);
-          }}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors active:scale-98 text-base w-full sm:w-auto"
-        >
-          <Plus className="w-5 h-5" />
-          Add Customer
-        </button>
+
+        <div className="relative">
+          <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search customers by name, phone, email, or address..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+          />
+        </div>
       </div>
 
       <div className="grid gap-4 lg:gap-6">
-        {customers.map((customer) => (
+        {filteredCustomers.map((customer) => (
           <div key={customer.id} className="bg-white rounded-lg shadow-md p-4 lg:p-6 hover:shadow-lg transition-shadow">
             <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
               <div className="flex-1">
@@ -252,18 +311,26 @@ export default function CustomersPage() {
           </div>
         ))}
 
-        {customers.length === 0 && (
+        {filteredCustomers.length === 0 && (
           <div className="text-center py-12 bg-white rounded-lg shadow p-4">
             <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No customers yet</h3>
-            <p className="text-gray-600 mb-4">Add your first customer to get started</p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 active:scale-98 text-base"
-            >
-              <Plus className="w-5 h-5" />
-              Add Customer
-            </button>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {customers.length === 0 ? 'No customers yet' : 'No customers found'}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {customers.length === 0
+                ? 'Add your first customer to get started'
+                : 'Try adjusting your search terms'}
+            </p>
+            {customers.length === 0 && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 active:scale-98 text-base"
+              >
+                <Plus className="w-5 h-5" />
+                Add Customer
+              </button>
+            )}
           </div>
         )}
       </div>
