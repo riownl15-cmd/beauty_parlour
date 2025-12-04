@@ -641,7 +641,7 @@ export default function BillingPage({ onSidebarToggle }: BillingPageProps) {
                             <img
                               src={storeLogo}
                               alt={product.name}
-                              className="w-full h-full object-contain rounded-lg opacity-30"
+                              className="w-full h-full object-contain rounded-lg opacity-100"
                             />
                           ) : (
                             <span className="text-5xl">{getProductEmoji(product.name)}</span>
