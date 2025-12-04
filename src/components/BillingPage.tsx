@@ -66,6 +66,7 @@ export default function BillingPage() {
   const [processing, setProcessing] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [lastInvoiceId, setLastInvoiceId] = useState<string | null>(null);
+  const [storeLogo, setStoreLogo] = useState<string>('');
   const barcodeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -80,10 +81,11 @@ export default function BillingPage() {
 
   const loadData = async () => {
     try {
-      const [productsResult, servicesResult, customersResult] = await Promise.all([
+      const [productsResult, servicesResult, customersResult, settingsResult] = await Promise.all([
         supabase.from('products').select('*').order('name'),
         supabase.from('services').select('*').eq('active', true).order('name'),
         supabase.from('customers').select('*').order('created_at', { ascending: false }),
+        supabase.from('settings').select('*').eq('key', 'store_logo').maybeSingle(),
       ]);
 
       if (productsResult.error) throw productsResult.error;
@@ -93,6 +95,7 @@ export default function BillingPage() {
       setProducts(productsResult.data || []);
       setServices(servicesResult.data || []);
       setCustomers(customersResult.data || []);
+      setStoreLogo(settingsResult.data?.value || '');
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -512,20 +515,21 @@ export default function BillingPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 lg:p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Search className="w-5 h-5 text-gray-700" />
-            <h3 className="text-base lg:text-lg font-semibold text-gray-800">Browse Products & Services</h3>
-          </div>
-
-          <div className="relative mb-4">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by name or SKU..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-            />
+          <div className="flex items-center gap-3 mb-4 flex-wrap lg:flex-nowrap">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Search className="w-5 h-5 text-gray-700" />
+              <h3 className="text-base lg:text-lg font-semibold text-gray-800">Browse Products & Services</h3>
+            </div>
+            <div className="relative flex-1 w-full lg:w-auto">
+              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by name or SKU..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              />
+            </div>
           </div>
 
           {searchTerm ? (
@@ -581,15 +585,21 @@ export default function BillingPage() {
                     disabled={product.stock_qty === 0}
                     className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 flex flex-col items-center justify-center text-center"
                   >
-                    <div className="w-16 h-16 flex items-center justify-center mb-3 text-5xl">
+                    <div className="w-16 h-16 flex items-center justify-center mb-3">
                       {product.image_url ? (
                         <img
                           src={product.image_url}
                           alt={product.name}
                           className="w-full h-full object-cover rounded-lg"
                         />
+                      ) : storeLogo ? (
+                        <img
+                          src={storeLogo}
+                          alt={product.name}
+                          className="w-full h-full object-contain rounded-lg opacity-30"
+                        />
                       ) : (
-                        <span>{getProductEmoji(product.name)}</span>
+                        <span className="text-5xl">{getProductEmoji(product.name)}</span>
                       )}
                     </div>
                     <p className="font-semibold text-gray-800 text-sm mb-1 line-clamp-2">{product.name}</p>
@@ -685,11 +695,11 @@ export default function BillingPage() {
               <div className="border-t-2 border-gray-200 pt-4 space-y-3 mb-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Discount</label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-stretch">
                     <select
                       value={discountType}
                       onChange={(e) => setDiscountType(e.target.value as 'percentage' | 'amount')}
-                      className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base font-medium"
+                      className="w-16 px-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base font-medium flex-shrink-0"
                     >
                       <option value="percentage">%</option>
                       <option value="amount">₹</option>
@@ -700,7 +710,7 @@ export default function BillingPage() {
                       value={discountValue}
                       onChange={(e) => setDiscountValue(e.target.value)}
                       placeholder="0"
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                      className="flex-1 min-w-0 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
                     />
                   </div>
                 </div>
@@ -710,7 +720,7 @@ export default function BillingPage() {
                   <select
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
                   >
                     <option value="cash">Cash</option>
                     <option value="card">Card</option>
