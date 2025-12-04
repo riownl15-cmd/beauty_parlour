@@ -42,6 +42,7 @@ export default function Layout({ children, currentPage, onPageChange, onLogout }
         w-64 bg-white shadow-lg
         transform transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${currentPage === 'billing' ? 'lg:hidden' : ''}
       `}>
         <div className="p-4 lg:p-6 border-b border-gray-200">
           <div className="flex items-center justify-between lg:justify-center">

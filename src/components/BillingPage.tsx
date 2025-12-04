@@ -25,6 +25,28 @@ type CartItem = {
   serviceId?: string;
 };
 
+const getProductEmoji = (productName: string): string => {
+  const name = productName.toLowerCase();
+
+  if (name.includes('lipstick') || name.includes('lip')) return '💄';
+  if (name.includes('nail') || name.includes('polish')) return '💅';
+  if (name.includes('perfume') || name.includes('fragrance')) return '🌸';
+  if (name.includes('makeup') || name.includes('foundation') || name.includes('powder')) return '✨';
+  if (name.includes('shampoo') || name.includes('conditioner') || name.includes('hair')) return '💇';
+  if (name.includes('lotion') || name.includes('cream') || name.includes('moistur')) return '🧴';
+  if (name.includes('brush') || name.includes('comb')) return '💇';
+  if (name.includes('mascara') || name.includes('eyelash') || name.includes('eye')) return '👁️';
+  if (name.includes('blush') || name.includes('rouge')) return '🌺';
+  if (name.includes('jewelry') || name.includes('earring') || name.includes('necklace')) return '💍';
+  if (name.includes('flower') || name.includes('bouquet')) return '💐';
+  if (name.includes('veil') || name.includes('tiara') || name.includes('crown')) return '👑';
+  if (name.includes('dress') || name.includes('gown')) return '👗';
+  if (name.includes('spa') || name.includes('facial')) return '🧖';
+  if (name.includes('wax') || name.includes('threading')) return '✨';
+
+  return '💄';
+};
+
 export default function BillingPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -506,57 +528,91 @@ export default function BillingPage() {
             />
           </div>
 
-          <div className="max-h-96 overflow-y-auto space-y-2">
-            {searchTerm ? (
-              <>
-                {filteredProducts.length === 0 && filteredServices.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <p className="text-sm">No products or services found</p>
+          {searchTerm ? (
+            <div className="max-h-96 overflow-y-auto space-y-2">
+              {filteredProducts.length === 0 && filteredServices.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <p className="text-sm">No products or services found</p>
+                </div>
+              )}
+              {filteredProducts.map((product) => (
+                <button
+                  key={product.id}
+                  onClick={() => addToCart(product, 'product')}
+                  disabled={product.stock_qty === 0}
+                  className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-98"
+                >
+                  <div className="flex justify-between items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-800 text-base truncate">{product.name}</p>
+                      <p className="text-sm text-gray-600">SKU: {product.sku}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-semibold text-blue-600 text-base">₹{product.sale_price.toFixed(2)}</p>
+                      <p className="text-xs text-gray-500">Stock: {product.stock_qty}</p>
+                    </div>
                   </div>
-                )}
-                {filteredProducts.map((product) => (
+                </button>
+              ))}
+
+              {filteredServices.map((service) => (
+                <button
+                  key={service.id}
+                  onClick={() => addToCart(service, 'service')}
+                  className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors active:scale-98"
+                >
+                  <div className="flex justify-between items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-800 text-base truncate">{service.name}</p>
+                      <p className="text-sm text-gray-600">{service.duration} mins</p>
+                    </div>
+                    <p className="font-semibold text-blue-600 text-base flex-shrink-0">₹{service.price.toFixed(2)}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="max-h-96 overflow-y-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {products.map((product) => (
                   <button
                     key={product.id}
                     onClick={() => addToCart(product, 'product')}
                     disabled={product.stock_qty === 0}
-                    className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-98"
+                    className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 flex flex-col items-center justify-center text-center"
                   >
-                    <div className="flex justify-between items-center gap-3">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-800 text-base truncate">{product.name}</p>
-                        <p className="text-sm text-gray-600">SKU: {product.sku}</p>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="font-semibold text-blue-600 text-base">₹{product.sale_price.toFixed(2)}</p>
-                        <p className="text-xs text-gray-500">Stock: {product.stock_qty}</p>
-                      </div>
+                    <div className="w-16 h-16 flex items-center justify-center mb-3 text-5xl">
+                      {product.image_url ? (
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      ) : (
+                        <span>{getProductEmoji(product.name)}</span>
+                      )}
                     </div>
+                    <p className="font-semibold text-gray-800 text-sm mb-1 line-clamp-2">{product.name}</p>
+                    <p className="text-blue-600 font-bold text-base">₹{product.sale_price.toFixed(2)}</p>
                   </button>
                 ))}
 
-                {filteredServices.map((service) => (
+                {services.map((service) => (
                   <button
                     key={service.id}
                     onClick={() => addToCart(service, 'service')}
-                    className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors active:scale-98"
+                    className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 hover:shadow-lg transition-all active:scale-95 flex flex-col items-center justify-center text-center"
                   >
-                    <div className="flex justify-between items-center gap-3">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-800 text-base truncate">{service.name}</p>
-                        <p className="text-sm text-gray-600">{service.duration} mins</p>
-                      </div>
-                      <p className="font-semibold text-blue-600 text-base flex-shrink-0">₹{service.price.toFixed(2)}</p>
+                    <div className="w-16 h-16 flex items-center justify-center mb-3 text-5xl">
+                      <span>💆</span>
                     </div>
+                    <p className="font-semibold text-gray-800 text-sm mb-1 line-clamp-2">{service.name}</p>
+                    <p className="text-blue-600 font-bold text-base">₹{service.price.toFixed(2)}</p>
                   </button>
                 ))}
-              </>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Search className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">Start typing to search</p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
