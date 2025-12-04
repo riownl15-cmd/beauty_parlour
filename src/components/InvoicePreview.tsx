@@ -185,17 +185,13 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
             ${logoBase64 ? `<img src="${logoBase64}" class="logo" alt="Logo" />` : ''}
           </div>
 
-          <div class="center">
-            <h1>${settings.store_name.toUpperCase()}</h1>
-            ${settings.store_address ? `<p>${settings.store_address}</p>` : ''}
-            ${settings.store_phone ? `<p>Tel: ${settings.store_phone}</p>` : ''}
-          </div>
-
           <div class="separator"></div>
 
           <div class="center">
-            <h2>INVOICE</h2>
-            <p>#${invoice?.invoice_number || ''}</p>
+            <div class="flex" style="justify-content: center; gap: 8px;">
+              <h2>INVOICE</h2>
+              <h2>#${invoice?.invoice_number || ''}</h2>
+            </div>
             <p>${invoice?.created_at ? formatDate(invoice.created_at) : ''}</p>
           </div>
 
@@ -256,8 +252,7 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
           <div class="separator"></div>
 
           <div class="center">
-            <p>PAYMENT METHOD:</p>
-            <h2>${invoice?.payment_method?.toUpperCase() || 'CASH'}</h2>
+            <p>PAYMENT: ${invoice?.payment_method?.toUpperCase() || 'CASH'}</p>
           </div>
 
           <div class="separator"></div>
@@ -395,21 +390,10 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
                 />
               </div>
 
-              <div className="text-center mb-3">
-                <h1 className="text-xl font-bold mb-2">{settings.store_name.toUpperCase()}</h1>
-                {settings.store_address && (
-                  <p className="text-xs font-bold mb-1">{settings.store_address}</p>
-                )}
-                {settings.store_phone && (
-                  <p className="text-xs font-bold mb-1">Tel: {settings.store_phone}</p>
-                )}
-              </div>
-
               <div className="border-t-2 border-dashed border-gray-600 my-3"></div>
 
               <div className="text-center text-sm mb-3">
-                <p className="font-bold text-base">INVOICE</p>
-                <p className="text-sm font-bold">#{invoice.invoice_number}</p>
+                <p className="font-bold text-base">INVOICE #{invoice.invoice_number}</p>
                 <p className="text-xs font-bold">{formatDate(invoice.created_at)}</p>
               </div>
 
@@ -478,8 +462,7 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
               <div className="border-t-2 border-dashed border-gray-600 my-3"></div>
 
               <div className="text-xs text-center mb-3">
-                <p className="font-bold">PAYMENT METHOD:</p>
-                <p className="uppercase font-bold text-base mt-1">{invoice.payment_method}</p>
+                <p className="font-bold">PAYMENT: {invoice.payment_method.toUpperCase()}</p>
               </div>
 
               <div className="border-t-2 border-dashed border-gray-600 my-3"></div>
