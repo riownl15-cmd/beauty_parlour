@@ -85,7 +85,17 @@ export default function Layout({ children, currentPage, onPageChange, onLogout, 
             );
           })}
         </nav>
-        <div className="p-2 lg:p-4 border-t border-gray-200">
+        <div className="p-2 lg:p-4 border-t border-gray-200 space-y-2">
+          {onSidebarToggle && (
+            <button
+              onClick={onSidebarToggle}
+              title={!sidebarExpanded ? 'Toggle Menu' : undefined}
+              className={`w-full flex items-center ${sidebarExpanded ? 'space-x-3 px-4' : 'justify-center px-2'} py-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-100`}
+            >
+              <Menu className="w-5 h-5 flex-shrink-0" />
+              {sidebarExpanded && <span className="font-medium">Toggle Menu</span>}
+            </button>
+          )}
           <button
             onClick={onLogout}
             title={!sidebarExpanded ? 'Logout' : undefined}
