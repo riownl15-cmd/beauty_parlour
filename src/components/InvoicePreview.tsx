@@ -67,9 +67,6 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
   };
 
   const handlePrint = () => {
-    const printWindow = window.open('', '', 'width=800,height=600');
-    if (!printWindow) return;
-
     const logoUrl = window.location.origin + '/asset_2smile_struct.png';
 
     const receiptHTML = `
@@ -296,9 +293,20 @@ export default function InvoicePreview({ invoiceId, onClose }: InvoicePreviewPro
       </html>
     `;
 
-    printWindow.document.open();
-    printWindow.document.write(receiptHTML);
-    printWindow.document.close();
+    const blob = new Blob([receiptHTML], { type: 'text/html' });
+    const blobUrl = URL.createObjectURL(blob);
+
+    const printWindow = window.open(blobUrl, '_blank');
+
+    if (!printWindow) {
+      URL.revokeObjectURL(blobUrl);
+      alert('Failed to open print window. Please allow popups for this site and try again.');
+      return;
+    }
+
+    setTimeout(() => {
+      URL.revokeObjectURL(blobUrl);
+    }, 1000);
   };
 
   if (loading || !invoice) {

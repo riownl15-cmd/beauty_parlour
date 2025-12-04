@@ -127,12 +127,6 @@ export default function BarcodePage() {
       return;
     }
 
-    const printWindow = window.open('', '', 'width=400,height=300');
-    if (!printWindow) {
-      alert('Failed to open print window. Please check your popup settings.');
-      return;
-    }
-
     const labelHTML = `
       <!DOCTYPE html>
       <html>
@@ -235,9 +229,20 @@ export default function BarcodePage() {
       </html>
     `;
 
-    printWindow.document.open();
-    printWindow.document.write(labelHTML);
-    printWindow.document.close();
+    const blob = new Blob([labelHTML], { type: 'text/html' });
+    const blobUrl = URL.createObjectURL(blob);
+
+    const printWindow = window.open(blobUrl, '_blank');
+
+    if (!printWindow) {
+      URL.revokeObjectURL(blobUrl);
+      alert('Failed to open print window. Please allow popups for this site and try again.');
+      return;
+    }
+
+    setTimeout(() => {
+      URL.revokeObjectURL(blobUrl);
+    }, 1000);
   };
 
   if (loading) {
